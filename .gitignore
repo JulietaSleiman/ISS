@@ -1,0 +1,30 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyInstaller / Build artifacts
+build/
+dist/
+*.spec
+!SistemaBebidas.spec
+
+# Databases locales y backups de testing
+*.sqlite
+*.db
+Backups_Automaticos/
+
+# Archivos temporales de Excel / Office
+~$*.xlsx
+*.tmp
+
+# Entornos virtuales
+venv/
+.env/
+env/
+.venv/
+
+# Logs y configuraciones de IDE
+.vscode/
+.idea/
+*.log
