@@ -8,7 +8,7 @@ from PyQt6.QtCore import QThread, pyqtSignal, Qt
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QProgressBar, QPushButton, QHBoxLayout, QMessageBox, QApplication
 
-CURRENT_VERSION = "1.0.0"
+CURRENT_VERSION = "1.0.1"
 GITHUB_REPO = "BernabeFigueroa/BF"  # Repositorio oficial para releases/binarios
 GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 
@@ -258,7 +258,8 @@ class UpdateDialog(QDialog):
 def apply_update_and_restart(new_exe_path):
     """
     Ejecuta el reemplazo seguro del ejecutable y vuelve a iniciar la app.
-    Maneja procesos en ejecución y permisos en Windows.
+    Maneja procesos en ejecución, rutas con caracteres especiales (Unicode) y permisos en Windows
+    de manera 100% silenciosa mediante PowerShell.
     """
     if not getattr(sys, 'frozen', False):
         QMessageBox.information(None, "Modo Desarrollo", f"Descargado con éxito en:\n{new_exe_path}\n(En modo ejecutable se aplica el reemplazo automático y reinicio)")
@@ -266,77 +267,85 @@ def apply_update_and_restart(new_exe_path):
 
     import tempfile
     current_exe = os.path.abspath(sys.executable)
-    exe_name = os.path.basename(current_exe)
     pid = os.getpid()
     temp_dir = tempfile.gettempdir()
-    updater_bat = os.path.join(temp_dir, "update_bebidasfrias.bat")
-    backup_exe = current_exe + ".old"
+    updater_ps1 = os.path.join(temp_dir, "update_bebidasfrias.ps1")
 
-    bat_content = f"""@echo off
-chcp 65001 >nul
-title Actualizando Sistema Bebidas Frias...
+    # Script de PowerShell silencioso con soporte Unicode y reintentos limpios
+    ps1_content = f"""# PowerShell Auto-Updater Bebidas Frías
+$targetPid = {pid}
+$currentExe = @'
+{current_exe}
+'@
+$newExe = @'
+{new_exe_path}
+'@
 
-:: 1. Esperar un instante y forzar cierre de todos los procesos del ejecutable
-timeout /t 1 /nobreak >nul
-taskkill /F /T /PID {pid} >nul 2>&1
-taskkill /F /IM "{exe_name}" >nul 2>&1
+# 1. Esperar a que el proceso padre termine completamente
+try {{
+    $proc = Get-Process -Id $targetPid -ErrorAction SilentlyContinue
+    if ($proc) {{
+        $proc.WaitForExit(5000)
+    }}
+}} catch {{}}
 
-:: 2. Limpiar backup previo si existiera
-if exist "{backup_exe}" del /F /Q "{backup_exe}" >nul 2>&1
+# 2. Reintentos de reemplazo (hasta 20 intentos con pausas de 500ms)
+$attempts = 0
+$replaced = $false
 
-:: 3. Reintentos de reemplazo
-set ATTEMPTS=0
-:RETRY
-set /a ATTEMPTS+=1
+while ($attempts -lt 20) {{
+    $attempts++
+    try {{
+        Copy-Item -LiteralPath $newExe -Destination $currentExe -Force -ErrorAction Stop
+        $replaced = $true
+        break
+    }} catch {{
+        Start-Sleep -Milliseconds 500
+    }}
+}}
 
-move /Y "{current_exe}" "{backup_exe}" >nul 2>&1
-if %ERRORLEVEL% equ 0 goto DO_COPY
+# 3. Limpieza de archivo temporal
+try {{
+    Remove-Item -LiteralPath $newExe -Force -ErrorAction SilentlyContinue
+}} catch {{}}
 
-copy /Y "{new_exe_path}" "{current_exe}" >nul 2>&1
-if %ERRORLEVEL% equ 0 goto FINISH
+# 4. Iniciar la nueva versión
+if (Test-Path -LiteralPath $currentExe) {{
+    Start-Process -FilePath $currentExe
+}}
 
-if %ATTEMPTS% lss 30 (
-    timeout /t 1 /nobreak >nul
-    taskkill /F /IM "{exe_name}" >nul 2>&1
-    goto RETRY
-)
-
-:DO_COPY
-copy /Y "{new_exe_path}" "{current_exe}" >nul 2>&1
-if %ERRORLEVEL% neq 0 (
-    move /Y "{new_exe_path}" "{current_exe}" >nul 2>&1
-)
-
-:FINISH
-if exist "{backup_exe}" del /F /Q "{backup_exe}" >nul 2>&1
-if exist "{new_exe_path}" del /F /Q "{new_exe_path}" >nul 2>&1
-
-echo Iniciando nueva version...
-start "" "{current_exe}"
-
-:: Limpiar el propio script batch
-(goto) 2>nul & del "%~f0"
-exit
+# 5. Autoeliminar este script
+try {{
+    Remove-Item -LiteralPath $MyInvocation.MyCommand.Path -Force -ErrorAction SilentlyContinue
+}} catch {{}}
 """
 
     try:
-        with open(updater_bat, "w", encoding="utf-8") as f:
-            f.write(bat_content)
+        with open(updater_ps1, "w", encoding="utf-8-sig") as f:
+            f.write(ps1_content)
 
-        # Lanzar el proceso batch en una nueva consola independiente para que sobreviva a la muerte del padre
-        flags = subprocess.CREATE_NEW_PROCESS_GROUP
+        # Flags para ejecución 100% en segundo plano sin ventana de consola
+        CREATE_NO_WINDOW = 0x08000000
+        flags = subprocess.CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW
         if hasattr(subprocess, 'DETACHED_PROCESS'):
             flags |= subprocess.DETACHED_PROCESS
-        
+
         subprocess.Popen(
-            ["cmd.exe", "/c", updater_bat],
+            [
+                "powershell.exe",
+                "-ExecutionPolicy", "Bypass",
+                "-NoProfile",
+                "-NonInteractive",
+                "-WindowStyle", "Hidden",
+                "-File", updater_ps1
+            ],
             creationflags=flags,
             close_fds=True
         )
     except Exception as e:
         print(f"Error lanzando updater: {e}")
 
-    # Forzar salida inmediata del proceso para soltar todos los handles de Windows
+    # Forzar salida inmediata del proceso para liberar el ejecutable en disco
     QApplication.quit()
     os._exit(0)
     sys.exit(0)
