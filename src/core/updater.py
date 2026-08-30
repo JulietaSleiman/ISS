@@ -311,7 +311,8 @@ try {{
 
 # 4. Iniciar la nueva versión
 if (Test-Path -LiteralPath $currentExe) {{
-    Start-Process -FilePath $currentExe
+    $workingDir = Split-Path -Parent $currentExe
+    Start-Process -FilePath $currentExe -WorkingDirectory $workingDir
 }}
 
 # 5. Autoeliminar este script
