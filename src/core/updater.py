@@ -8,7 +8,7 @@ from PyQt6.QtCore import QThread, pyqtSignal, Qt
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QProgressBar, QPushButton, QHBoxLayout, QMessageBox, QApplication
 
-CURRENT_VERSION = "1.0.4"
+CURRENT_VERSION = "1.0.5"
 GITHUB_REPO = "BernabeFigueroa/BF"  # Repositorio oficial para releases/binarios
 GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 
@@ -291,17 +291,18 @@ $logFile = @'
 
 Function Log-Msg($msg) {{
     try {{
-        "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - $msg" | Out-File -LiteralPath $logFile -Append -Encoding utf8
+        $nowStr = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+        "$nowStr - $msg" | Out-File -LiteralPath $logFile -Append -Encoding utf8
     }} catch {{}}
 }}
 
-Log-Msg "Iniciando actualizacion. PID objetivo: $targetPid"
+Log-Msg ("Iniciando actualizacion. PID objetivo: " + $targetPid)
 
 # 1. Esperar a que el proceso padre termine completamente
 try {{
     $proc = Get-Process -Id $targetPid -ErrorAction SilentlyContinue
     if ($proc) {{
-        Log-Msg "Esperando cierre del proceso $targetPid..."
+        Log-Msg ("Esperando cierre del proceso " + $targetPid)
         $proc.WaitForExit(7000)
     }}
 }} catch {{}}
@@ -318,10 +319,11 @@ while ($attempts -lt 30) {{
     try {{
         Copy-Item -LiteralPath $newExe -Destination $currentExe -Force -ErrorAction Stop
         $replaced = $true
-        Log-Msg "Archivo reemplazado con éxito en intento $attempts"
+        Log-Msg ("Archivo reemplazado con éxito en intento " + $attempts)
         break
     }} catch {{
-        Log-Msg "Error en intento $attempts: $_"
+        $errMsg = $_.Exception.Message
+        Log-Msg ("Error en intento " + $attempts + " - " + $errMsg)
         Start-Sleep -Milliseconds 500
     }}
 }}
@@ -333,7 +335,7 @@ try {{
 
 # 4. Iniciar la nueva versión en modo visible y con el directorio de trabajo correcto
 if ($replaced -or (Test-Path -LiteralPath $currentExe)) {{
-    Log-Msg "Iniciando nueva versión: $currentExe en $workingDir"
+    Log-Msg ("Iniciando nueva versión: " + $currentExe + " en " + $workingDir)
     Start-Process -FilePath $currentExe -WorkingDirectory $workingDir -WindowStyle Normal
 }} else {{
     Log-Msg "ERROR CRITICO: No se pudo reemplazar el archivo ejecutable."
