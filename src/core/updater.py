@@ -8,7 +8,7 @@ from PyQt6.QtCore import QThread, pyqtSignal, Qt
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QProgressBar, QPushButton, QHBoxLayout, QMessageBox, QApplication
 
-CURRENT_VERSION = "1.0.3"
+CURRENT_VERSION = "1.0.4"
 GITHUB_REPO = "BernabeFigueroa/BF"  # Repositorio oficial para releases/binarios
 GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 
@@ -259,7 +259,7 @@ def apply_update_and_restart(new_exe_path):
     """
     Ejecuta el reemplazo seguro del ejecutable y vuelve a iniciar la app.
     Maneja procesos en ejecución, rutas con caracteres especiales (Unicode) y permisos en Windows
-    de manera 100% silenciosa mediante PowerShell.
+    de manera 100% silenciosa y confiable mediante PowerShell.
     """
     if not getattr(sys, 'frozen', False):
         QMessageBox.information(None, "Modo Desarrollo", f"Descargado con éxito en:\n{new_exe_path}\n(En modo ejecutable se aplica el reemplazo automático y reinicio)")
@@ -267,11 +267,13 @@ def apply_update_and_restart(new_exe_path):
 
     import tempfile
     current_exe = os.path.abspath(sys.executable)
+    working_dir = os.path.dirname(current_exe)
     pid = os.getpid()
     temp_dir = tempfile.gettempdir()
     updater_ps1 = os.path.join(temp_dir, "update_bebidasfrias.ps1")
+    log_file = os.path.join(temp_dir, "updater_debug.log")
 
-    # Script de PowerShell silencioso con soporte Unicode y reintentos limpios
+    # Script de PowerShell robusto con logging, soporte Unicode y arranque visible
     ps1_content = f"""# PowerShell Auto-Updater Bebidas Frías
 $targetPid = {pid}
 $currentExe = @'
@@ -280,26 +282,46 @@ $currentExe = @'
 $newExe = @'
 {new_exe_path}
 '@
+$workingDir = @'
+{working_dir}
+'@
+$logFile = @'
+{log_file}
+'@
+
+Function Log-Msg($msg) {{
+    try {{
+        "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - $msg" | Out-File -LiteralPath $logFile -Append -Encoding utf8
+    }} catch {{}}
+}}
+
+Log-Msg "Iniciando actualizacion. PID objetivo: $targetPid"
 
 # 1. Esperar a que el proceso padre termine completamente
 try {{
     $proc = Get-Process -Id $targetPid -ErrorAction SilentlyContinue
     if ($proc) {{
-        $proc.WaitForExit(5000)
+        Log-Msg "Esperando cierre del proceso $targetPid..."
+        $proc.WaitForExit(7000)
     }}
 }} catch {{}}
 
-# 2. Reintentos de reemplazo (hasta 20 intentos con pausas de 500ms)
+# Breve pausa para asegurar liberacion de handles en Windows
+Start-Sleep -Milliseconds 800
+
+# 2. Reintentos de reemplazo (hasta 30 intentos con pausas de 500ms)
 $attempts = 0
 $replaced = $false
 
-while ($attempts -lt 20) {{
+while ($attempts -lt 30) {{
     $attempts++
     try {{
         Copy-Item -LiteralPath $newExe -Destination $currentExe -Force -ErrorAction Stop
         $replaced = $true
+        Log-Msg "Archivo reemplazado con éxito en intento $attempts"
         break
     }} catch {{
+        Log-Msg "Error en intento $attempts: $_"
         Start-Sleep -Milliseconds 500
     }}
 }}
@@ -309,10 +331,12 @@ try {{
     Remove-Item -LiteralPath $newExe -Force -ErrorAction SilentlyContinue
 }} catch {{}}
 
-# 4. Iniciar la nueva versión
-if (Test-Path -LiteralPath $currentExe) {{
-    $workingDir = Split-Path -Parent $currentExe
-    Start-Process -FilePath $currentExe -WorkingDirectory $workingDir
+# 4. Iniciar la nueva versión en modo visible y con el directorio de trabajo correcto
+if ($replaced -or (Test-Path -LiteralPath $currentExe)) {{
+    Log-Msg "Iniciando nueva versión: $currentExe en $workingDir"
+    Start-Process -FilePath $currentExe -WorkingDirectory $workingDir -WindowStyle Normal
+}} else {{
+    Log-Msg "ERROR CRITICO: No se pudo reemplazar el archivo ejecutable."
 }}
 
 # 5. Autoeliminar este script
@@ -325,12 +349,8 @@ try {{
         with open(updater_ps1, "w", encoding="utf-8-sig") as f:
             f.write(ps1_content)
 
-        # Flags para ejecución 100% en segundo plano sin ventana de consola
+        # Flag para que PowerShell no muestre ventana de consola
         CREATE_NO_WINDOW = 0x08000000
-        flags = subprocess.CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW
-        if hasattr(subprocess, 'DETACHED_PROCESS'):
-            flags |= subprocess.DETACHED_PROCESS
-
         subprocess.Popen(
             [
                 "powershell.exe",
@@ -340,8 +360,7 @@ try {{
                 "-WindowStyle", "Hidden",
                 "-File", updater_ps1
             ],
-            creationflags=flags,
-            close_fds=True
+            creationflags=CREATE_NO_WINDOW
         )
     except Exception as e:
         print(f"Error lanzando updater: {e}")
