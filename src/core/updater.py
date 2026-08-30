@@ -328,9 +328,13 @@ while ($attempts -lt 30) {{
     }}
 }}
 
-# 3. Limpieza de archivo temporal
+# 3. Limpieza de archivo temporal y residuos de _internal (evita conflicto PyInstaller onedir/onefile)
 try {{
     Remove-Item -LiteralPath $newExe -Force -ErrorAction SilentlyContinue
+    $internalDir = Join-Path -Path $workingDir -ChildPath "_internal"
+    if (Test-Path -LiteralPath $internalDir) {{
+        Remove-Item -LiteralPath $internalDir -Recurse -Force -ErrorAction SilentlyContinue
+    }}
 }} catch {{}}
 
 # 4. Iniciar la nueva versión en modo visible y con el directorio de trabajo correcto
