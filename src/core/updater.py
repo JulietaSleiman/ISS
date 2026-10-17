@@ -121,7 +121,7 @@ class UpdateDialog(QDialog):
     def __init__(self, release_info, parent=None):
         super().__init__(parent)
         self.release_info = release_info
-        self.setWindowTitle("Actualización Disponible - Bebidas Frías")
+        self.setWindowTitle("Actualización Disponible - Ivan Llorens")
         self.setFixedSize(500, 270)
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowType.WindowContextHelpButtonHint)
         self.setup_ui()
@@ -191,7 +191,7 @@ class UpdateDialog(QDialog):
         layout.addWidget(lbl_title)
 
         lbl_desc = QLabel(
-            f"Se ha publicado una actualización para el Sistema Bebidas Frías.\n"
+            f"Se ha publicado una actualización para el Sistema de Ventas - Ivan Llorens.\n"
             f"Versión actual: v{CURRENT_VERSION} -> Nueva: v{self.release_info['version']}\n\n"
             f"Haga clic en 'Actualizar e Instalar' para descargar e iniciar la versión más reciente."
         )
@@ -274,7 +274,7 @@ def apply_update_and_restart(new_exe_path):
     log_file = os.path.join(temp_dir, "updater_debug.log")
 
     # Script de PowerShell robusto con logging, soporte Unicode y arranque visible
-    ps1_content = f"""# PowerShell Auto-Updater Bebidas Frías
+    ps1_content = f"""# PowerShell Auto-Updater Ivan Llorens
 $targetPid = {pid}
 $currentExe = @'
 {current_exe}

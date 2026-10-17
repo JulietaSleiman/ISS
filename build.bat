@@ -13,7 +13,7 @@ rmdir /s /q dist
 
 echo.
 echo Generando ejecutable (Onefile)...
-python -m PyInstaller --noconfirm --onefile --windowed --icon="logo.ico" --name "SistemaBebidas" --add-data "logo.jpg;." main.py
+python -m PyInstaller --noconfirm --onefile --windowed --icon="logo.ico" --name "SistemaBebidas" --add-data "logo.jpg;." --add-data "logo.png;." main.py
 
 echo.
 echo =========================================

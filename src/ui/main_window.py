@@ -15,7 +15,7 @@ from src.core.updater import UpdateCheckerThread, UpdateDialog, CURRENT_VERSION
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle(f"Sistema de Ventas - Bebidas Frías (v{CURRENT_VERSION})")
+        self.setWindowTitle(f"Sistema de Ventas - Ivan Llorens (v{CURRENT_VERSION})")
         self.resize(1200, 800)
         
         # Set Window Icon
@@ -25,7 +25,13 @@ class MainWindow(QMainWindow):
             base_path = sys._MEIPASS
         else:
             base_path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        self.setWindowIcon(QIcon(os.path.join(base_path, "logo.jpg")))
+            
+        icon_path = os.path.join(base_path, "logo.ico")
+        if not os.path.exists(icon_path):
+            icon_path = os.path.join(base_path, "logo.png")
+            if not os.path.exists(icon_path):
+                icon_path = os.path.join(base_path, "logo.jpg")
+        self.setWindowIcon(QIcon(icon_path))
         
         self.init_ui()
         self.verificar_actualizaciones()
@@ -49,8 +55,8 @@ class MainWindow(QMainWindow):
         sidebar.setFixedWidth(260)
         sidebar.setStyleSheet("background-color: #161B22; color: #E5EEF2; border-right: 1px solid #232B33;")
         sidebar_layout = QVBoxLayout(sidebar)
-        sidebar_layout.setContentsMargins(15, 25, 15, 25)
-        sidebar_layout.setSpacing(12)
+        sidebar_layout.setContentsMargins(15, 15, 15, 15)
+        sidebar_layout.setSpacing(6)
 
         # Título del menú (Logo)
         lbl_brand = QLabel()
@@ -64,15 +70,19 @@ class MainWindow(QMainWindow):
         else:
             base_path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
             
-        logo_path = os.path.join(base_path, "logo.jpg")
+        logo_path = os.path.join(base_path, "logo.png")
+        if not os.path.exists(logo_path):
+            logo_path = os.path.join(base_path, "logo.jpg")
+            
         pixmap = QPixmap(logo_path)
         if not pixmap.isNull():
-            lbl_brand.setPixmap(pixmap.scaled(220, 120, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+            lbl_brand.setPixmap(pixmap.scaled(220, 110, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
             lbl_brand.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            lbl_brand.setStyleSheet("margin-bottom: 20px;")
+            lbl_brand.setMinimumHeight(100)
+            lbl_brand.setStyleSheet("margin-bottom: 10px; background: transparent;")
         else:
-            lbl_brand.setText("BEBIDAS FRIAS")
-            lbl_brand.setStyleSheet("font-size: 24px; font-weight: 800; color: #ACE0F4; margin-bottom: 20px; border: none;")
+            lbl_brand.setText("IVAN LLORENS")
+            lbl_brand.setStyleSheet("font-size: 22px; font-weight: 800; color: #ACE0F4; margin-bottom: 10px; border: none;")
         
         sidebar_layout.addWidget(lbl_brand)
 
@@ -160,7 +170,7 @@ class MainWindow(QMainWindow):
 
     def crear_boton_menu(self, texto):
         btn = QPushButton(texto)
-        btn.setFixedHeight(50)
+        btn.setFixedHeight(44)
         btn.setCheckable(True)
         btn.setAutoExclusive(True)
         btn.setStyleSheet("""
