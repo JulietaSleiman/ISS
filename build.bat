@@ -1,6 +1,6 @@
 @echo off
 echo =========================================
-echo COMPILANDO SISTEMA DRUGSTORE
+echo COMPILANDO SISTEMA DE VENTAS - IVAN LLORENS
 echo =========================================
 
 echo Instalando PyInstaller...
@@ -13,11 +13,11 @@ rmdir /s /q dist
 
 echo.
 echo Generando ejecutable (Onefile)...
-python -m PyInstaller --noconfirm --onefile --windowed --icon="logo.ico" --name "SistemaBebidas" --add-data "logo.jpg;." --add-data "logo.png;." main.py
+python -m PyInstaller --noconfirm --onefile --windowed --icon="logo.ico" --name "SistemaIvanLlorens" --add-data "logo.jpg;." --add-data "logo.png;." main.py
 
 echo.
 echo =========================================
 echo COMPILACION TERMINADA
-echo El ejecutable esta en la carpeta "dist\SistemaBebidas.exe"
+echo El ejecutable esta en la carpeta "dist\SistemaIvanLlorens.exe"
 echo =========================================
 pause

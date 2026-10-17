@@ -5,13 +5,13 @@ from pathlib import Path
 from datetime import datetime, timezone
 
 if getattr(sys, 'frozen', False):
-    # En producción (el .exe), la base de datos se guarda en C:\BebidasFrias
-    DB_DIR = Path("C:/BebidasFrias")
+    # En producción (el .exe), la base de datos se guarda en C:\SistemaIvanLlorens
+    DB_DIR = Path("C:/SistemaIvanLlorens")
     try:
         DB_DIR.mkdir(parents=True, exist_ok=True)
     except PermissionError:
-        # Fallback por si hay restricciones raras de Windows, aunque en C:\ no suele haber si creamos una carpeta propia
-        DB_DIR = Path(os.environ.get('LOCALAPPDATA', os.environ.get('APPDATA', os.path.expanduser('~')))) / "BebidasFrias"
+        # Fallback por si hay restricciones de permisos en Windows
+        DB_DIR = Path(os.environ.get('LOCALAPPDATA', os.environ.get('APPDATA', os.path.expanduser('~')))) / "SistemaIvanLlorens"
         DB_DIR.mkdir(parents=True, exist_ok=True)
 else:
     # Si se ejecuta como script .py (desarrollo), se guarda en la raíz del proyecto

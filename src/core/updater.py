@@ -38,7 +38,7 @@ class UpdateCheckerThread(QThread):
                         exe_size = 0
                         
                         # Determinar el nombre exacto del ejecutable en ejecución
-                        current_exe_name = os.path.basename(sys.executable).lower() if getattr(sys, 'frozen', False) else "sistemabebidas.exe"
+                        current_exe_name = os.path.basename(sys.executable).lower() if getattr(sys, 'frozen', False) else "sistemaivanllorens.exe"
                         
                         assets = data.get("assets", [])
                         # 1. Buscar coincidencia exacta por nombre
@@ -235,7 +235,7 @@ class UpdateDialog(QDialog):
 
         import tempfile
         temp_dir = tempfile.gettempdir()
-        new_exe_path = os.path.join(temp_dir, "SistemaBebidas_update.exe")
+        new_exe_path = os.path.join(temp_dir, "SistemaIvanLlorens_update.exe")
 
         self.worker = DownloadWorkerThread(self.release_info["download_url"], new_exe_path)
         self.worker.progress.connect(self.progress_bar.setValue)
