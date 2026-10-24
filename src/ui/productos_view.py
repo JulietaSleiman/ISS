@@ -26,8 +26,8 @@ class ProductosView(QWidget):
         frame = QFrame()
         frame.setStyleSheet("""
             QFrame {
-                background-color: #1A2026;
-                border: 1px solid #32404D;
+                background-color: #FFFFFF;
+                border: 1px solid #E2E8F0;
                 border-radius: 8px;
             }
             QLabel { border: none; font-weight: 500; font-size: 14px; }
@@ -96,7 +96,7 @@ class ProductosView(QWidget):
 
         lbl_titulo = QLabel("MANTENIMIENTO DE ARTÍCULOS")
         lbl_titulo.setFont(QFont("Segoe UI", 20, QFont.Weight.Bold))
-        lbl_titulo.setStyleSheet("color: #ACE0F4;")
+        lbl_titulo.setStyleSheet("color: #0284C7;")
         layout_principal.addWidget(lbl_titulo)
 
         splitter = QSplitter(Qt.Orientation.Vertical)
@@ -113,7 +113,7 @@ class ProductosView(QWidget):
         g_layout.addWidget(QLabel("Cód. Interno:"), 0, 0)
         self.txt_codigo_interno = QLineEdit("[ Automático ]")
         self.txt_codigo_interno.setReadOnly(True)
-        self.txt_codigo_interno.setStyleSheet("color: #9EB3C2; background-color: transparent; border: none;")
+        self.txt_codigo_interno.setStyleSheet("color: #64748B; background-color: transparent; border: none; font-weight: bold;")
         g_layout.addWidget(self.txt_codigo_interno, 0, 1)
 
         g_layout.addWidget(QLabel("Cód. Barras (Opcional):"), 0, 2)
@@ -156,12 +156,12 @@ class ProductosView(QWidget):
 
         p_layout.addWidget(QLabel("Precio Mostrador:"), 1, 2)
         self.txt_precio_contado = NumericLineEdit("0.00")
-        self.txt_precio_contado.setStyleSheet("background-color: #1A2026; font-weight: bold; color: #8DE2B9; font-size: 16px;")
+        self.txt_precio_contado.setStyleSheet("background-color: #ECFDF5; border: 1.5px solid #10B981; font-weight: bold; color: #047857; font-size: 16px;")
         p_layout.addWidget(self.txt_precio_contado, 1, 3)
 
         p_layout.addWidget(QLabel("Precio Local:"), 1, 4)
         self.txt_precio_tarjeta = NumericLineEdit("0.00")
-        self.txt_precio_tarjeta.setStyleSheet("background-color: #1A2026; font-weight: bold; color: #ACE0F4; font-size: 16px;")
+        self.txt_precio_tarjeta.setStyleSheet("background-color: #EFF6FF; border: 1.5px solid #3B82F6; font-weight: bold; color: #1D4ED8; font-size: 16px;")
         p_layout.addWidget(self.txt_precio_tarjeta, 1, 5)
 
         form_layout.addWidget(p_frame)
@@ -201,22 +201,22 @@ class ProductosView(QWidget):
         self.btn_limpiar.clicked.connect(self.limpiar_formulario)
         
         self.btn_eliminar = QPushButton("Eliminar")
-        self.btn_eliminar.setStyleSheet("background-color: #E28D8D; color: #161B22; font-weight: bold; border: none;")
+        self.btn_eliminar.setStyleSheet("background-color: #EF4444; color: #FFFFFF; font-weight: bold; border-radius: 6px; padding: 8px 16px; border: none;")
         self.btn_eliminar.clicked.connect(self.eliminar_producto)
         self.btn_eliminar.setEnabled(False)
 
         self.btn_restaurar = QPushButton("Restaurar")
-        self.btn_restaurar.setStyleSheet("background-color: #8DE2B9; color: #161B22; font-weight: bold; border: none;")
+        self.btn_restaurar.setStyleSheet("background-color: #10B981; color: #FFFFFF; font-weight: bold; border-radius: 6px; padding: 8px 16px; border: none;")
         self.btn_restaurar.clicked.connect(self.restaurar_producto)
         self.btn_restaurar.setVisible(False)
 
         self.btn_ficha = QPushButton("Ver Ficha")
-        self.btn_ficha.setStyleSheet("background-color: #ACE0F4; color: #161B22; font-weight: bold; border: none;")
+        self.btn_ficha.setStyleSheet("background-color: #0284C7; color: #FFFFFF; font-weight: bold; border-radius: 6px; padding: 8px 16px; border: none;")
         self.btn_ficha.clicked.connect(self.ver_ficha_producto)
         self.btn_ficha.setEnabled(False)
 
         self.btn_grabar = QPushButton("Guardar (F5)")
-        self.btn_grabar.setStyleSheet("background-color: #8DE2B9; color: #161B22; font-weight: bold; border: none;")
+        self.btn_grabar.setStyleSheet("background-color: #10B981; color: #FFFFFF; font-weight: bold; border-radius: 6px; padding: 8px 16px; border: none;")
         self.btn_grabar.clicked.connect(self.grabar_producto)
         
         self.shortcut_f5 = QShortcut(QKeySequence("F5"), self)
@@ -224,7 +224,7 @@ class ProductosView(QWidget):
         self.shortcut_f5.setContext(Qt.ShortcutContext.WindowShortcut)
         
         self.btn_duplicar = QPushButton("Duplicar")
-        self.btn_duplicar.setStyleSheet("background-color: #D3C6AA; color: #161B22; font-weight: bold; border: none;")
+        self.btn_duplicar.setStyleSheet("background-color: #F1F5F9; color: #334155; border: 1px solid #CBD5E1; font-weight: bold; border-radius: 6px; padding: 8px 16px;")
         self.btn_duplicar.clicked.connect(self.duplicar_producto)
 
         btn_layout.addWidget(self.btn_limpiar)
@@ -262,7 +262,7 @@ class ProductosView(QWidget):
         search_layout.addWidget(self.cb_filtro_proveedor)
         
         self.chk_inactivos = QCheckBox("Ver eliminados")
-        self.chk_inactivos.setStyleSheet("color: #E28D8D; font-weight: bold;")
+        self.chk_inactivos.setStyleSheet("color: #EF4444; font-weight: bold;")
         self.chk_inactivos.stateChanged.connect(lambda _: self.cargar_grilla(self.txt_buscar.text()))
         search_layout.addWidget(self.chk_inactivos)
         
@@ -574,39 +574,39 @@ class ProductosView(QWidget):
                 self.setWindowTitle(f"Ficha / Historial: {producto_nombre}")
                 self.setMinimumSize(700, 400)
                 self.setStyleSheet("""
-                    QDialog { background-color: #1A2026; }
-                    QLabel { color: #cdd6f4; font-size: 14px; }
+                    QDialog { background-color: #FFFFFF; }
+                    QLabel { color: #0F172A; font-size: 14px; }
                     QTableWidget {
-                        background-color: #242A32;
-                        color: #cdd6f4;
-                        gridline-color: #32404D;
-                        border: 1px solid #32404D;
+                        background-color: #FFFFFF;
+                        color: #0F172A;
+                        gridline-color: #F1F5F9;
+                        border: 1px solid #E2E8F0;
                         border-radius: 6px;
                     }
                     QHeaderView::section {
-                        background-color: #1A2026;
-                        color: #a6adc8;
+                        background-color: #F1F5F9;
+                        color: #475569;
                         padding: 8px;
                         border: none;
                         font-weight: bold;
-                        border-bottom: 2px solid #32404D;
+                        border-bottom: 2px solid #CBD5E1;
                     }
                     QPushButton {
-                        background-color: #32404D;
-                        color: #cdd6f4;
-                        border: none;
+                        background-color: #F1F5F9;
+                        color: #0F172A;
+                        border: 1px solid #CBD5E1;
                         border-radius: 6px;
                         padding: 8px 20px;
                         font-weight: bold;
                     }
-                    QPushButton:hover { background-color: #8DE2B9; color: #1A2026; }
+                    QPushButton:hover { background-color: #E2E8F0; border-color: #94A3B8; }
                 """)
                 
                 layout = QVBoxLayout(self)
                 
                 lbl_titulo = QLabel(f"Movimientos de: {producto_nombre}")
                 lbl_titulo.setFont(QFont("Segoe UI", 16, QFont.Weight.Bold))
-                lbl_titulo.setStyleSheet("color: #ACE0F4;")
+                lbl_titulo.setStyleSheet("color: #0284C7;")
                 layout.addWidget(lbl_titulo)
                 
                 tabla = QTableWidget(0, 6)

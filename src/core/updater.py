@@ -129,16 +129,16 @@ class UpdateDialog(QDialog):
     def setup_ui(self):
         self.setStyleSheet("""
             QDialog {
-                background-color: #1A2026;
-                color: #E5EEF2;
+                background-color: #FFFFFF;
+                color: #0F172A;
             }
             QLabel {
-                color: #E5EEF2;
+                color: #0F172A;
             }
             QPushButton {
-                background-color: #32404D;
-                color: #E5EEF2;
-                border: 1px solid #425961;
+                background-color: #F1F5F9;
+                color: #0F172A;
+                border: 1px solid #CBD5E1;
                 border-radius: 6px;
                 font-weight: bold;
                 font-size: 13px;
@@ -146,37 +146,37 @@ class UpdateDialog(QDialog):
                 min-height: 32px;
             }
             QPushButton:hover {
-                background-color: #2C3742;
-                border-color: #91C2D5;
-                color: #ACE0F4;
+                background-color: #E2E8F0;
+                border-color: #94A3B8;
             }
             QPushButton#btn_update {
-                background-color: #8DE2B9;
-                color: #161B22;
+                background-color: #10B981;
+                color: #FFFFFF;
                 border: none;
             }
             QPushButton#btn_update:hover {
-                background-color: #7BCFA6;
+                background-color: #059669;
             }
             QPushButton#btn_cancel {
-                background-color: #232B33;
-                color: #9EB3C2;
+                background-color: #F1F5F9;
+                color: #64748B;
+                border: 1px solid #CBD5E1;
             }
             QPushButton#btn_cancel:hover {
-                background-color: #32404D;
-                color: #E5EEF2;
+                background-color: #E2E8F0;
+                color: #0F172A;
             }
             QProgressBar {
-                border: 1px solid #32404D;
+                border: 1px solid #CBD5E1;
                 border-radius: 6px;
-                background-color: #232B33;
+                background-color: #F1F5F9;
                 text-align: center;
-                color: #E5EEF2;
+                color: #0F172A;
                 font-weight: bold;
                 height: 22px;
             }
             QProgressBar::chunk {
-                background-color: #8DE2B9;
+                background-color: #10B981;
                 border-radius: 5px;
             }
         """)
@@ -187,7 +187,7 @@ class UpdateDialog(QDialog):
 
         lbl_title = QLabel(f"¡Nueva versión disponible: v{self.release_info['version']}!")
         lbl_title.setFont(QFont("Segoe UI", 14, QFont.Weight.Bold))
-        lbl_title.setStyleSheet("color: #ACE0F4;")
+        lbl_title.setStyleSheet("color: #0284C7;")
         layout.addWidget(lbl_title)
 
         lbl_desc = QLabel(
@@ -196,7 +196,7 @@ class UpdateDialog(QDialog):
             f"Haga clic en 'Actualizar e Instalar' para descargar e iniciar la versión más reciente."
         )
         lbl_desc.setWordWrap(True)
-        lbl_desc.setStyleSheet("color: #9EB3C2; font-size: 12px;")
+        lbl_desc.setStyleSheet("color: #64748B; font-size: 12px;")
         layout.addWidget(lbl_desc)
 
         self.progress_bar = QProgressBar()
@@ -206,7 +206,7 @@ class UpdateDialog(QDialog):
         layout.addWidget(self.progress_bar)
 
         self.lbl_status = QLabel("")
-        self.lbl_status.setStyleSheet("color: #ACE0F4; font-size: 11px; font-style: italic;")
+        self.lbl_status.setStyleSheet("color: #0284C7; font-size: 11px; font-style: italic;")
         self.lbl_status.setVisible(False)
         layout.addWidget(self.lbl_status)
 

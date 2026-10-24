@@ -11,11 +11,12 @@ class BuscadorClientesDialog(QDialog):
         self.setWindowTitle("Buscador de Clientes (F3)")
         self.resize(800, 600)
         self.setStyleSheet("""
-            QDialog { background-color: #1A2026; color: #E5EEF2; }
-            QLineEdit { border: 1px solid #32404D; background-color: #232B33; padding: 10px; font-size: 16px; color: #E5EEF2; border-radius: 6px; }
-            QTableWidget { background-color: #1A2026; color: #E5EEF2; gridline-color: transparent; border: 1px solid #32404D; border-radius: 6px; selection-background-color: #2C3742; }
-            QTableWidget::item { border-bottom: 1px solid #232B33; padding: 4px; }
-            QHeaderView::section { background-color: #232B33; color: #9EB3C2; padding: 10px; font-weight: bold; border: none; border-bottom: 2px solid #32404D; }
+            QDialog { background-color: #FFFFFF; color: #0F172A; }
+            QLineEdit { border: 1px solid #CBD5E1; background-color: #FFFFFF; padding: 10px; font-size: 16px; color: #0F172A; border-radius: 6px; }
+            QLineEdit:focus { border: 1.5px solid #0284C7; }
+            QTableWidget { background-color: #FFFFFF; color: #0F172A; gridline-color: #F1F5F9; border: 1px solid #E2E8F0; border-radius: 6px; selection-background-color: #E0F2FE; selection-color: #0284C7; }
+            QTableWidget::item { border-bottom: 1px solid #F1F5F9; padding: 6px; }
+            QHeaderView::section { background-color: #F1F5F9; color: #475569; padding: 10px; font-weight: bold; border: none; border-bottom: 2px solid #CBD5E1; }
         """)
         
         self.cliente_id_seleccionado = None

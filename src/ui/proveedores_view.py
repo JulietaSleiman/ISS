@@ -20,7 +20,7 @@ class ProveedoresView(QWidget):
         
         lbl_titulo = QLabel("GESTIÓN DE PROVEEDORES")
         lbl_titulo.setFont(QFont("Segoe UI", 20, QFont.Weight.Bold))
-        lbl_titulo.setStyleSheet("color: #ACE0F4; margin-bottom: 10px;")
+        lbl_titulo.setStyleSheet("color: #0284C7; margin-bottom: 10px;")
         layout.addWidget(lbl_titulo)
 
         splitter = QSplitter(Qt.Orientation.Vertical)
@@ -28,7 +28,7 @@ class ProveedoresView(QWidget):
 
         # --- FORMULARIO ---
         form_widget = QFrame()
-        form_widget.setStyleSheet("QFrame { background-color: #1A2026; border-radius: 8px; } QLabel { font-weight: bold; } QLineEdit { background-color: #32404D; border: 1px solid #32404D; padding: 5px; }")
+        form_widget.setStyleSheet("QFrame { background-color: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; } QLabel { font-weight: bold; }")
         form_layout = QVBoxLayout(form_widget)
         
         row1 = QHBoxLayout()
@@ -53,12 +53,12 @@ class ProveedoresView(QWidget):
         self.btn_limpiar.clicked.connect(self.limpiar_form)
         
         self.btn_eliminar = QPushButton("Dar de Baja")
-        self.btn_eliminar.setStyleSheet("background-color: #E28D8D; color: #161B22; font-weight: bold; border: none;")
+        self.btn_eliminar.setStyleSheet("background-color: #EF4444; color: #FFFFFF; font-weight: bold; border-radius: 6px; padding: 8px 16px; border: none;")
         self.btn_eliminar.clicked.connect(self.eliminar)
         self.btn_eliminar.setEnabled(False)
         
         self.btn_guardar = QPushButton("Guardar")
-        self.btn_guardar.setStyleSheet("background-color: #8DE2B9; color: #161B22; font-weight: bold; border: none;")
+        self.btn_guardar.setStyleSheet("background-color: #10B981; color: #FFFFFF; font-weight: bold; border-radius: 6px; padding: 8px 16px; border: none;")
         self.btn_guardar.clicked.connect(self.guardar)
 
         btn_layout.addWidget(self.btn_limpiar)

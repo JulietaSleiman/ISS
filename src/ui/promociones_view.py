@@ -24,7 +24,7 @@ class PromocionesView(QWidget):
         
         lbl_titulo = QLabel("MANTENIMIENTO DE PROMOCIONES (COMBOS)")
         lbl_titulo.setFont(QFont("Segoe UI", 20, QFont.Weight.Bold))
-        lbl_titulo.setStyleSheet("color: #ACE0F4; margin-bottom: 10px;")
+        lbl_titulo.setStyleSheet("color: #0284C7; margin-bottom: 10px;")
         layout.addWidget(lbl_titulo)
 
         splitter = QSplitter(Qt.Orientation.Vertical)
@@ -33,9 +33,8 @@ class PromocionesView(QWidget):
         # --- PANEL SUPERIOR: FORMULARIO ---
         form_widget = QFrame()
         form_widget.setStyleSheet("""
-            QFrame { background-color: #1A2026; border: 1px solid #32404D; border-radius: 8px; }
+            QFrame { background-color: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; }
             QLabel { border: none; font-weight: bold; }
-            
         """)
         form_layout = QVBoxLayout(form_widget)
         
@@ -57,7 +56,7 @@ class PromocionesView(QWidget):
         # Agregar artículos al combo
         agregar_layout = QHBoxLayout()
         self.btn_buscar_art = QPushButton("Agregar Artículo al Combo (F2)")
-        self.btn_buscar_art.setStyleSheet("background-color: #32404D; padding: 8px;")
+        self.btn_buscar_art.setStyleSheet("background-color: #F1F5F9; color: #0F172A; border: 1px solid #CBD5E1; border-radius: 6px; padding: 8px 16px; font-weight: bold;")
         self.btn_buscar_art.clicked.connect(self.abrir_buscador)
         agregar_layout.addWidget(self.btn_buscar_art)
         agregar_layout.addStretch()
@@ -79,7 +78,7 @@ class PromocionesView(QWidget):
         self.btn_limpiar.clicked.connect(self.limpiar_formulario)
         
         self.btn_grabar = QPushButton("Guardar Promoción")
-        self.btn_grabar.setStyleSheet("background-color: #8DE2B9; color: #161B22; font-weight: bold; border: none;")
+        self.btn_grabar.setStyleSheet("background-color: #10B981; color: #FFFFFF; font-weight: bold; border-radius: 6px; padding: 8px 16px; border: none;")
         self.btn_grabar.clicked.connect(self.guardar_promocion)
 
         btn_layout.addWidget(self.btn_limpiar)
@@ -139,7 +138,7 @@ class PromocionesView(QWidget):
             self.tabla_detalles.setCellWidget(i, 1, txt_cant)
             
             btn_quitar = QPushButton("Quitar")
-            btn_quitar.setStyleSheet("background-color: #E28D8D; color: #161B22; font-weight: bold; padding: 5px;")
+            btn_quitar.setStyleSheet("background-color: #EF4444; color: #FFFFFF; font-weight: bold; border-radius: 4px; padding: 5px 10px; border: none;")
             btn_quitar.clicked.connect(lambda checked, idx=i: self.quitar_detalle(idx))
             self.tabla_detalles.setCellWidget(i, 2, btn_quitar)
 
@@ -162,7 +161,7 @@ class PromocionesView(QWidget):
         self.detalles_combo = []
         self.actualizar_tabla_detalles()
         self.btn_grabar.setText("Guardar Promoción")
-        self.btn_grabar.setStyleSheet("background-color: #8DE2B9; color: #161B22; font-weight: bold; border: none;")
+        self.btn_grabar.setStyleSheet("background-color: #10B981; color: #FFFFFF; font-weight: bold; border-radius: 6px; padding: 8px 16px; border: none;")
 
     def guardar_promocion(self):
         nombre = self.txt_nombre.text().strip()
@@ -207,11 +206,11 @@ class PromocionesView(QWidget):
             action_layout.setContentsMargins(0, 0, 0, 0)
             
             btn_editar = QPushButton("Editar")
-            btn_editar.setStyleSheet("background-color: #F0DA8C; color: #161B22; font-weight: bold; padding: 5px;")
+            btn_editar.setStyleSheet("background-color: #F59E0B; color: #FFFFFF; font-weight: bold; border-radius: 4px; padding: 5px 10px; border: none;")
             btn_editar.clicked.connect(lambda checked, pid=p['id']: self.cargar_para_editar(pid))
             
             btn_eliminar = QPushButton("Eliminar")
-            btn_eliminar.setStyleSheet("background-color: #E28D8D; color: #161B22; font-weight: bold; padding: 5px;")
+            btn_eliminar.setStyleSheet("background-color: #EF4444; color: #FFFFFF; font-weight: bold; border-radius: 4px; padding: 5px 10px; border: none;")
             btn_eliminar.clicked.connect(lambda checked, pid=p['id']: self.eliminar_promocion(pid))
             
             action_layout.addWidget(btn_editar)
@@ -241,7 +240,7 @@ class PromocionesView(QWidget):
         self.actualizar_tabla_detalles()
         
         self.btn_grabar.setText("Actualizar Promoción")
-        self.btn_grabar.setStyleSheet("background-color: #F0DA8C; color: #161B22; font-weight: bold; border: none;")
+        self.btn_grabar.setStyleSheet("background-color: #F59E0B; color: #FFFFFF; font-weight: bold; border-radius: 6px; padding: 8px 16px; border: none;")
 
     def eliminar_promocion(self, pid):
         reply = QMessageBox.question(self, "Confirmar", "¿Eliminar esta promoción?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)

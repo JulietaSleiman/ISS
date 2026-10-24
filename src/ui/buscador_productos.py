@@ -12,10 +12,12 @@ class BuscadorProductosDialog(QDialog):
         self.setWindowTitle("Buscador de Artículos (F2)")
         self.resize(800, 600)
         self.setStyleSheet("""
-            QDialog { background-color: #11111b; color: #cdd6f4; }
-            QLineEdit { border: 1px solid #45475a; background-color: #313244; padding: 10px; font-size: 16px; color: #cdd6f4;}
-            QTableWidget { background-color: #1e1e2e; color: #cdd6f4; gridline-color: #313244; border: 1px solid #313244;}
-            QHeaderView::section { background-color: #181825; color: #cdd6f4; padding: 5px; font-weight: bold; border: none; border-bottom: 1px solid #313244; border-right: 1px solid #313244;}
+            QDialog { background-color: #FFFFFF; color: #0F172A; }
+            QLineEdit { border: 1px solid #CBD5E1; background-color: #FFFFFF; padding: 10px; font-size: 16px; color: #0F172A; border-radius: 6px; }
+            QLineEdit:focus { border: 1.5px solid #0284C7; }
+            QTableWidget { background-color: #FFFFFF; color: #0F172A; gridline-color: #F1F5F9; border: 1px solid #E2E8F0; border-radius: 6px; selection-background-color: #E0F2FE; selection-color: #0284C7; }
+            QTableWidget::item { border-bottom: 1px solid #F1F5F9; padding: 6px; }
+            QHeaderView::section { background-color: #F1F5F9; color: #475569; padding: 8px; font-weight: bold; border: none; border-bottom: 2px solid #CBD5E1; }
         """)
         
         self.codigo_seleccionado = None

@@ -19,8 +19,8 @@ class CajaView(QWidget):
         frame = QFrame()
         frame.setStyleSheet("""
             QFrame {
-                background-color: #1E2128;
-                border: 1px solid #2A2E38;
+                background-color: #FFFFFF;
+                border: 1px solid #E2E8F0;
                 border-radius: 12px;
             }
             QLabel { border: none; }
@@ -32,12 +32,12 @@ class CajaView(QWidget):
         if titulo:
             lbl_titulo = QLabel(titulo)
             lbl_titulo.setFont(QFont("Segoe UI", 16, QFont.Weight.Bold))
-            lbl_titulo.setStyleSheet("color: #ACE0F4;")
+            lbl_titulo.setStyleSheet("color: #0284C7;")
             layout.addWidget(lbl_titulo)
             
             linea = QFrame()
             linea.setFrameShape(QFrame.Shape.HLine)
-            linea.setStyleSheet("background-color: #2A2E38; border: none; height: 1px;")
+            linea.setStyleSheet("background-color: #E2E8F0; border: none; height: 1px;")
             layout.addWidget(linea)
             
         return frame, layout
@@ -51,7 +51,7 @@ class CajaView(QWidget):
         header_layout = QHBoxLayout()
         lbl_titulo = QLabel("CAJA DIARIA")
         lbl_titulo.setFont(QFont("Segoe UI", 24, QFont.Weight.Bold))
-        lbl_titulo.setStyleSheet("color: #E2E8F0;")
+        lbl_titulo.setStyleSheet("color: #0F172A;")
         header_layout.addWidget(lbl_titulo)
         
         self.lbl_estado_caja = QLabel("Estado: CERRADA")
@@ -75,13 +75,12 @@ class CajaView(QWidget):
         form_apertura = QHBoxLayout()
         lbl_monto = QLabel("Monto Inicial en Caja: $")
         lbl_monto.setFont(QFont("Segoe UI", 14))
-        lbl_monto.setStyleSheet("color: #A0AEC0;")
+        lbl_monto.setStyleSheet("color: #475569;")
         form_apertura.addWidget(lbl_monto)
         
         self.txt_monto_inicial = QLineEdit("0.00")
         self.txt_monto_inicial.setFont(QFont("Segoe UI", 14))
         self.txt_monto_inicial.setFixedWidth(150)
-        self.txt_monto_inicial.setStyleSheet("background-color: #16181D; border: 1px solid #32404D; border-radius: 6px; padding: 5px; color: #E2E8F0;")
         form_apertura.addWidget(self.txt_monto_inicial)
         form_apertura.addStretch()
         apertura_layout.addLayout(form_apertura)
@@ -89,8 +88,8 @@ class CajaView(QWidget):
         self.btn_abrir_caja = QPushButton("ABRIR CAJA")
         self.btn_abrir_caja.setFont(QFont("Segoe UI", 12, QFont.Weight.Bold))
         self.btn_abrir_caja.setStyleSheet("""
-            QPushButton { background-color: #8DE2B9; color: #161B22; border-radius: 6px; padding: 12px; }
-            QPushButton:hover { background-color: #A2E8C8; }
+            QPushButton { background-color: #10B981; color: #FFFFFF; border-radius: 6px; padding: 12px; border: none; }
+            QPushButton:hover { background-color: #059669; }
         """)
         self.btn_abrir_caja.clicked.connect(self.abrir_caja)
         apertura_layout.addWidget(self.btn_abrir_caja)
@@ -104,29 +103,26 @@ class CajaView(QWidget):
         grid_mov.setSpacing(15)
         
         lbl_tipo = QLabel("Tipo:")
-        lbl_tipo.setStyleSheet("color: #A0AEC0; font-size: 14px;")
+        lbl_tipo.setStyleSheet("color: #475569; font-size: 14px;")
         grid_mov.addWidget(lbl_tipo, 0, 0)
         
         self.cb_tipo_mov = QComboBox()
         self.cb_tipo_mov.addItems(["INGRESO", "EGRESO"])
-        self.cb_tipo_mov.setStyleSheet("background-color: #16181D; border: 1px solid #32404D; border-radius: 6px; padding: 5px; color: #E2E8F0; font-size: 14px;")
         grid_mov.addWidget(self.cb_tipo_mov, 0, 1)
 
         lbl_monto_mov = QLabel("Monto: $")
-        lbl_monto_mov.setStyleSheet("color: #A0AEC0; font-size: 14px;")
+        lbl_monto_mov.setStyleSheet("color: #475569; font-size: 14px;")
         grid_mov.addWidget(lbl_monto_mov, 0, 2)
         
         self.txt_monto_mov = QLineEdit("0.00")
-        self.txt_monto_mov.setStyleSheet("background-color: #16181D; border: 1px solid #32404D; border-radius: 6px; padding: 5px; color: #E2E8F0; font-size: 14px;")
         grid_mov.addWidget(self.txt_monto_mov, 0, 3)
 
         lbl_desc = QLabel("Descripción:")
-        lbl_desc.setStyleSheet("color: #A0AEC0; font-size: 14px;")
+        lbl_desc.setStyleSheet("color: #475569; font-size: 14px;")
         grid_mov.addWidget(lbl_desc, 1, 0)
         
         self.txt_desc_mov = QLineEdit()
         self.txt_desc_mov.setPlaceholderText("Ej. Pago a proveedor, Retiro...")
-        self.txt_desc_mov.setStyleSheet("background-color: #16181D; border: 1px solid #32404D; border-radius: 6px; padding: 5px; color: #E2E8F0; font-size: 14px;")
         grid_mov.addWidget(self.txt_desc_mov, 1, 1, 1, 3)
         
         mov_layout.addLayout(grid_mov)
@@ -134,8 +130,8 @@ class CajaView(QWidget):
         self.btn_registrar_mov = QPushButton("REGISTRAR MOVIMIENTO")
         self.btn_registrar_mov.setFont(QFont("Segoe UI", 12, QFont.Weight.Bold))
         self.btn_registrar_mov.setStyleSheet("""
-            QPushButton { background-color: #ACE0F4; color: #161B22; border-radius: 6px; padding: 12px; }
-            QPushButton:hover { background-color: #BDE7F7; }
+            QPushButton { background-color: #0284C7; color: #FFFFFF; border-radius: 6px; padding: 12px; border: none; }
+            QPushButton:hover { background-color: #0369A1; }
         """)
         self.btn_registrar_mov.clicked.connect(self.registrar_movimiento)
         mov_layout.addWidget(self.btn_registrar_mov)
@@ -169,21 +165,21 @@ class CajaView(QWidget):
         self.lbl_valores = {}
         
         campos = [
-            ("Saldo Inicial", "monto_inicial", "#A0AEC0"),
-            ("Ventas Efectivo", "ventas_efectivo", "#8DE2B9"),
-            ("Ventas Transferencia", "ventas_transferencia", "#8DE2B9"),
-            ("Ventas Fiadas", "ventas_fiadas", "#F6AD55"),
-            ("Cobros Deuda (Evo)", "pagos_deuda_efectivo", "#8DE2B9"),
-            ("Cobros Deuda (Trans)", "pagos_deuda_transferencia", "#8DE2B9"),
-            ("Ingresos Manuales", "ingresos_manuales", "#8DE2B9"),
-            ("Egresos Manuales", "egresos_manuales", "#E28D8D"),
+            ("Saldo Inicial", "monto_inicial", "#64748B"),
+            ("Ventas Efectivo", "ventas_efectivo", "#10B981"),
+            ("Ventas Transferencia", "ventas_transferencia", "#0284C7"),
+            ("Ventas Fiadas", "ventas_fiadas", "#D97706"),
+            ("Cobros Deuda (Evo)", "pagos_deuda_efectivo", "#10B981"),
+            ("Cobros Deuda (Trans)", "pagos_deuda_transferencia", "#0284C7"),
+            ("Ingresos Manuales", "ingresos_manuales", "#10B981"),
+            ("Egresos Manuales", "egresos_manuales", "#EF4444"),
         ]
         
         row = 0
         for titulo, clave, color in campos:
             lbl_tit = QLabel(titulo)
             lbl_tit.setFont(QFont("Segoe UI", 12))
-            lbl_tit.setStyleSheet("color: #E2E8F0;")
+            lbl_tit.setStyleSheet("color: #334155;")
             
             lbl_val = QLabel("$ 0.00")
             lbl_val.setFont(QFont("Segoe UI", 12, QFont.Weight.Bold))
@@ -198,18 +194,18 @@ class CajaView(QWidget):
         # Linea divisoria
         linea_res = QFrame()
         linea_res.setFrameShape(QFrame.Shape.HLine)
-        linea_res.setStyleSheet("background-color: #32404D; border: none; height: 1px; margin-top: 10px; margin-bottom: 10px;")
+        linea_res.setStyleSheet("background-color: #E2E8F0; border: none; height: 1px; margin-top: 10px; margin-bottom: 10px;")
         self.grid_resumen.addWidget(linea_res, row, 0, 1, 2)
         row += 1
         
         # Saldo Efectivo
         lbl_saldo_tit = QLabel("SALDO EFECTIVO CAJA")
         lbl_saldo_tit.setFont(QFont("Segoe UI", 16, QFont.Weight.Bold))
-        lbl_saldo_tit.setStyleSheet("color: #E2E8F0;")
+        lbl_saldo_tit.setStyleSheet("color: #0F172A;")
         
         self.lbl_saldo_efectivo = QLabel("$ 0.00")
         self.lbl_saldo_efectivo.setFont(QFont("Segoe UI", 24, QFont.Weight.Bold))
-        self.lbl_saldo_efectivo.setStyleSheet("color: #8DE2B9;")
+        self.lbl_saldo_efectivo.setStyleSheet("color: #10B981;")
         self.lbl_saldo_efectivo.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         
         self.grid_resumen.addWidget(lbl_saldo_tit, row, 0)
@@ -219,11 +215,11 @@ class CajaView(QWidget):
         # Total Vendido
         lbl_tot_tit = QLabel("TOTAL VENDIDO")
         lbl_tot_tit.setFont(QFont("Segoe UI", 14, QFont.Weight.Bold))
-        lbl_tot_tit.setStyleSheet("color: #A0AEC0;")
+        lbl_tot_tit.setStyleSheet("color: #64748B;")
         
         self.lbl_total_vendido = QLabel("$ 0.00")
         self.lbl_total_vendido.setFont(QFont("Segoe UI", 18, QFont.Weight.Bold))
-        self.lbl_total_vendido.setStyleSheet("color: #ACE0F4;")
+        self.lbl_total_vendido.setStyleSheet("color: #0284C7;")
         self.lbl_total_vendido.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         
         self.grid_resumen.addWidget(lbl_tot_tit, row, 0)
@@ -236,9 +232,9 @@ class CajaView(QWidget):
         self.btn_cerrar_caja = QPushButton("CERRAR TURNO")
         self.btn_cerrar_caja.setFont(QFont("Segoe UI", 14, QFont.Weight.Bold))
         self.btn_cerrar_caja.setStyleSheet("""
-            QPushButton { background-color: #E28D8D; color: #161B22; border-radius: 8px; padding: 15px; }
-            QPushButton:hover { background-color: #E8A2A2; }
-            QPushButton:pressed { background-color: #CC7676; }
+            QPushButton { background-color: #EF4444; color: #FFFFFF; border-radius: 8px; padding: 15px; border: none; }
+            QPushButton:hover { background-color: #DC2626; }
+            QPushButton:pressed { background-color: #B91C1C; }
         """)
         self.btn_cerrar_caja.clicked.connect(self.cerrar_caja)
         cierre_layout.addWidget(self.btn_cerrar_caja)
@@ -252,7 +248,7 @@ class CajaView(QWidget):
         
         if self.sesion_activa:
             self.lbl_estado_caja.setText(f"● ABIERTA (Inicio: {self.sesion_activa['fecha_apertura']})")
-            self.lbl_estado_caja.setStyleSheet("color: #8DE2B9;")
+            self.lbl_estado_caja.setStyleSheet("color: #10B981;")
             self.frame_apertura.setVisible(False)
             self.frame_movimientos.setVisible(True)
             self.frame_tabla.setVisible(True)
@@ -260,7 +256,7 @@ class CajaView(QWidget):
             self.cargar_resumen()
         else:
             self.lbl_estado_caja.setText("○ CERRADA")
-            self.lbl_estado_caja.setStyleSheet("color: #E28D8D;")
+            self.lbl_estado_caja.setStyleSheet("color: #EF4444;")
             self.frame_apertura.setVisible(True)
             self.frame_movimientos.setVisible(False)
             self.frame_tabla.setVisible(False)

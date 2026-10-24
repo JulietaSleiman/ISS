@@ -36,8 +36,8 @@ class POSView(QWidget):
         frame = QFrame()
         frame.setStyleSheet("""
             QFrame {
-                background-color: #1A2026;
-                border: 1px solid #32404D;
+                background-color: #FFFFFF;
+                border: 1px solid #E2E8F0;
                 border-radius: 8px;
             }
             QLabel { border: none; font-weight: 500; }
@@ -70,7 +70,7 @@ class POSView(QWidget):
         
         lbl_nro_factura = QLabel("Nº 00000001")
         lbl_nro_factura.setFont(QFont("Segoe UI", 16, QFont.Weight.Bold))
-        lbl_nro_factura.setStyleSheet("color: #ACE0F4;")
+        lbl_nro_factura.setStyleSheet("color: #0284C7;")
         
         comprobante_layout.addWidget(cb_tipo_factura)
         comprobante_layout.addWidget(lbl_nro_factura)
@@ -89,7 +89,7 @@ class POSView(QWidget):
         cliente_input_layout.addWidget(self.txt_cod_cliente)
         
         self.btn_buscar_cliente = QPushButton("(F3)")
-        self.btn_buscar_cliente.setStyleSheet("background-color: #32404D; border: none; padding: 4px; border-radius: 4px;")
+        self.btn_buscar_cliente.setStyleSheet("background-color: #F1F5F9; color: #0F172A; border: 1px solid #CBD5E1; padding: 4px; border-radius: 4px; font-weight: bold;")
         self.btn_buscar_cliente.setFixedWidth(50)
         self.btn_buscar_cliente.clicked.connect(self.abrir_buscador_clientes_f3)
         cliente_input_layout.addWidget(self.btn_buscar_cliente)
@@ -129,7 +129,7 @@ class POSView(QWidget):
         self.rb_llevar.setChecked(True) # Por defecto
         
         # Estilos para que se vean bien
-        estilo_rb = "QRadioButton { font-size: 16px; font-weight: bold; color: #ACE0F4; padding: 5px; }"
+        estilo_rb = "QRadioButton { font-size: 15px; font-weight: bold; color: #0284C7; padding: 5px; }"
         self.rb_llevar.setStyleSheet(estilo_rb)
         self.rb_local.setStyleSheet(estilo_rb)
         
@@ -178,7 +178,7 @@ class POSView(QWidget):
         info_layout = QVBoxLayout()
         info_layout.addWidget(QLabel("Vendedor: 01 - Principal"))
         lbl_shortcuts = QLabel("[F5] Cobrar   |   [F12] Cancelar Venta   |   [Supr] Eliminar Fila")
-        lbl_shortcuts.setStyleSheet("color: #a6adc8;")
+        lbl_shortcuts.setStyleSheet("color: #64748B;")
         info_layout.addWidget(lbl_shortcuts)
         bottom_layout.addLayout(info_layout)
 
@@ -188,21 +188,19 @@ class POSView(QWidget):
         self.btn_cobrar = QPushButton("COBRAR (F5)")
         self.btn_cobrar.setMinimumSize(150, 60)
         self.btn_cobrar.setStyleSheet("""
-            QPushButton { background-color: #8DE2B9; color: #161B22; font-weight: bold; font-size: 16px; border-radius: 8px; border: none;}
-            QPushButton:hover { background-color: #A2E8C8; }
-            QPushButton:pressed { background-color: #76CCA1; }
+            QPushButton { background-color: #10B981; color: #FFFFFF; font-weight: bold; font-size: 16px; border-radius: 8px; border: none;}
+            QPushButton:hover { background-color: #059669; }
+            QPushButton:pressed { background-color: #047857; }
         """)
         self.btn_cobrar.clicked.connect(self.cobrar_venta)
 
         self.btn_cancelar = QPushButton("CANCELAR (F12)")
         self.btn_cancelar.setMinimumSize(150, 60)
         self.btn_cancelar.setStyleSheet("""
-            QPushButton { background-color: #E28D8D; color: #161B22; font-weight: bold; font-size: 16px; border-radius: 8px; border: none;}
-            QPushButton:hover { background-color: #E8A2A2; }
-            QPushButton:pressed { background-color: #CC7676; }
+            QPushButton { background-color: #EF4444; color: #FFFFFF; font-weight: bold; font-size: 16px; border-radius: 8px; border: none;}
+            QPushButton:hover { background-color: #DC2626; }
+            QPushButton:pressed { background-color: #B91C1C; }
         """)
-        self.btn_cancelar.clicked.connect(self.cancelar_venta)
-
         self.btn_cancelar.clicked.connect(self.cancelar_venta)
 
         bottom_layout.addWidget(self.btn_cobrar)
@@ -228,12 +226,12 @@ class POSView(QWidget):
         self.lbl_descuento = QLabel("")
         self.lbl_descuento.setFont(QFont("Segoe UI", 12))
         self.lbl_descuento.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignBottom)
-        self.lbl_descuento.setStyleSheet("color: #E28D8D;")
+        self.lbl_descuento.setStyleSheet("color: #EF4444;")
         
         self.lbl_total = QLabel("$0.00")
         self.lbl_total.setFont(QFont("Segoe UI", 48, QFont.Weight.Bold))
         self.lbl_total.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
-        self.lbl_total.setStyleSheet("color: #ACE0F4;")
+        self.lbl_total.setStyleSheet("color: #0284C7;")
         
         total_layout.addWidget(self.lbl_descuento)
         total_layout.addWidget(self.lbl_total)

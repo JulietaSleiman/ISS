@@ -16,23 +16,23 @@ class DialogoDetalleModerno(QDialog):
         self.setMinimumWidth(450)
         self.setStyleSheet("""
             QDialog {
-                background-color: #1A2026;
+                background-color: #FFFFFF;
             }
             QLabel {
-                color: #cdd6f4;
+                color: #0F172A;
                 font-size: 14px;
             }
             QPushButton {
-                background-color: #32404D;
-                color: #cdd6f4;
-                border: none;
+                background-color: #F1F5F9;
+                color: #0F172A;
+                border: 1px solid #CBD5E1;
                 border-radius: 6px;
                 padding: 8px 20px;
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #8DE2B9;
-                color: #1A2026;
+                background-color: #E2E8F0;
+                border-color: #94A3B8;
             }
         """)
         
@@ -42,15 +42,15 @@ class DialogoDetalleModerno(QDialog):
         
         lbl_titulo = QLabel(titulo)
         lbl_titulo.setFont(QFont("Segoe UI", 16, QFont.Weight.Bold))
-        lbl_titulo.setStyleSheet("color: #ACE0F4;")
+        lbl_titulo.setStyleSheet("color: #0284C7;")
         layout.addWidget(lbl_titulo)
         
         frame = QFrame()
         frame.setStyleSheet("""
             QFrame {
-                background-color: #242A32;
+                background-color: #F8FAFC;
                 border-radius: 6px;
-                border: 1px solid #32404D;
+                border: 1px solid #E2E8F0;
             }
         """)
         frame_layout = QVBoxLayout(frame)
@@ -79,26 +79,24 @@ class ReportesView(QWidget):
         
         lbl_titulo = QLabel("REPORTES Y ESTADÍSTICAS")
         lbl_titulo.setFont(QFont("Segoe UI", 20, QFont.Weight.Bold))
-        lbl_titulo.setStyleSheet("color: #ACE0F4; margin-bottom: 10px;")
+        lbl_titulo.setStyleSheet("color: #0284C7; margin-bottom: 10px;")
         layout.addWidget(lbl_titulo)
 
         # --- FILTROS DE FECHA ---
         filtro_frame = QFrame()
-        filtro_frame.setStyleSheet("QFrame { background-color: #1A2026; border-radius: 8px; padding: 10px; }")
+        filtro_frame.setStyleSheet("QFrame { background-color: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px; }")
         filtro_layout = QHBoxLayout(filtro_frame)
         
         filtro_layout.addWidget(QLabel("Desde:"))
         self.dt_desde = QDateEdit()
         self.dt_desde.setCalendarPopup(True)
         self.dt_desde.setDate(QDate.currentDate())
-        self.dt_desde.setStyleSheet("background-color: #32404D; color: #cdd6f4;")
         filtro_layout.addWidget(self.dt_desde)
         
         filtro_layout.addWidget(QLabel("Hasta:"))
         self.dt_hasta = QDateEdit()
         self.dt_hasta.setCalendarPopup(True)
         self.dt_hasta.setDate(QDate.currentDate())
-        self.dt_hasta.setStyleSheet("background-color: #32404D; color: #cdd6f4;")
         filtro_layout.addWidget(self.dt_hasta)
         
         self.lbl_pago = QLabel("Pago:")
@@ -106,11 +104,10 @@ class ReportesView(QWidget):
         from PyQt6.QtWidgets import QComboBox
         self.cb_metodo_pago = QComboBox()
         self.cb_metodo_pago.addItems(["TODOS", "EFECTIVO", "TRANSFERENCIA", "MIXTO", "CUENTA CORRIENTE"])
-        self.cb_metodo_pago.setStyleSheet("background-color: #32404D; color: #cdd6f4;")
         filtro_layout.addWidget(self.cb_metodo_pago)
         
         self.btn_generar = QPushButton("Generar Reportes")
-        self.btn_generar.setStyleSheet("background-color: #8DE2B9; color: #161B22; font-weight: bold; padding: 5px 15px;")
+        self.btn_generar.setStyleSheet("background-color: #10B981; color: #FFFFFF; font-weight: bold; padding: 6px 18px; border-radius: 6px; border: none;")
         self.btn_generar.clicked.connect(self.generar_reportes)
         filtro_layout.addWidget(self.btn_generar)
         
@@ -121,14 +118,14 @@ class ReportesView(QWidget):
         self.tabs = QTabWidget()
         self.tabs.setStyleSheet("""
             QTabWidget::pane {
-                border: 1px solid #32404D;
+                border: 1px solid #E2E8F0;
                 border-radius: 6px;
-                background-color: transparent;
+                background-color: #FFFFFF;
                 margin-top: -1px;
             }
             QTabBar::tab {
-                background-color: #1A2026;
-                color: #a6adc8;
+                background-color: #E2E8F0;
+                color: #475569;
                 padding: 10px 20px;
                 border-top-left-radius: 6px;
                 border-top-right-radius: 6px;
@@ -138,13 +135,13 @@ class ReportesView(QWidget):
                 border: 1px solid transparent;
             }
             QTabBar::tab:selected {
-                background-color: #242A32;
-                color: #ACE0F4;
-                border: 1px solid #32404D;
-                border-bottom: 3px solid #8DE2B9;
+                background-color: #FFFFFF;
+                color: #0284C7;
+                border: 1px solid #E2E8F0;
+                border-bottom: 3px solid #0284C7;
             }
             QTabBar::tab:hover:!selected {
-                background-color: #242A32;
+                background-color: #F1F5F9;
             }
         """)
         self.tabs.currentChanged.connect(self.al_cambiar_pestana)
@@ -175,20 +172,21 @@ class ReportesView(QWidget):
     def aplicar_estilo_tabla(self, tabla: QTableWidget):
         tabla.setStyleSheet("""
             QTableWidget {
-                background-color: #1A2026;
-                color: #cdd6f4;
-                gridline-color: #32404D;
-                border: none;
+                background-color: #FFFFFF;
+                color: #0F172A;
+                gridline-color: #F1F5F9;
+                border: 1px solid #E2E8F0;
                 border-radius: 6px;
-                selection-background-color: #32404D;
+                selection-background-color: #E0F2FE;
+                selection-color: #0284C7;
             }
             QHeaderView::section {
-                background-color: #242A32;
-                color: #a6adc8;
+                background-color: #F1F5F9;
+                color: #475569;
                 padding: 8px;
                 border: none;
                 font-weight: bold;
-                border-bottom: 2px solid #32404D;
+                border-bottom: 2px solid #CBD5E1;
             }
         """)
 
@@ -196,7 +194,8 @@ class ReportesView(QWidget):
         frame = QFrame()
         frame.setStyleSheet(f"""
             QFrame {{
-                background-color: #242A32;
+                background-color: #FFFFFF;
+                border: 1px solid #E2E8F0;
                 border-top: 4px solid {color_hex};
                 border-radius: 6px;
             }}
@@ -206,7 +205,7 @@ class ReportesView(QWidget):
         
         lbl_titulo = QLabel(titulo)
         lbl_titulo.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
-        lbl_titulo.setStyleSheet("color: #a6adc8; border: none; background: transparent;")
+        lbl_titulo.setStyleSheet("color: #64748B; border: none; background: transparent;")
         
         lbl_valor = QLabel(valor_inicial)
         lbl_valor.setFont(QFont("Segoe UI", 20, QFont.Weight.Bold))
@@ -225,9 +224,9 @@ class ReportesView(QWidget):
         resumen_layout = QHBoxLayout()
         resumen_layout.setSpacing(15)
         
-        self.frame_efectivo, self.lbl_tot_efectivo = self.crear_tarjeta_resumen("EFECTIVO", "$0.00", "#8DE2B9")
-        self.frame_transferencia, self.lbl_tot_transferencia = self.crear_tarjeta_resumen("TRANSFERENCIA", "$0.00", "#ACE0F4")
-        self.frame_general, self.lbl_tot_general = self.crear_tarjeta_resumen("TOTAL GENERAL", "$0.00", "#E28D8D")
+        self.frame_efectivo, self.lbl_tot_efectivo = self.crear_tarjeta_resumen("EFECTIVO", "$0.00", "#10B981")
+        self.frame_transferencia, self.lbl_tot_transferencia = self.crear_tarjeta_resumen("TRANSFERENCIA", "$0.00", "#0284C7")
+        self.frame_general, self.lbl_tot_general = self.crear_tarjeta_resumen("TOTAL GENERAL", "$0.00", "#6366F1")
         
         resumen_layout.addWidget(self.frame_efectivo)
         resumen_layout.addWidget(self.frame_transferencia)
@@ -287,27 +286,27 @@ class ReportesView(QWidget):
             caja_id = int(caja_id_str)
             resumen = CajaManager.obtener_resumen(caja_id)
             html = f"""
-            <table width="100%" cellspacing="8" cellpadding="0">
-                <tr><td>Saldo Inicial:</td><td align="right" style="color: #cdd6f4;">$ {resumen['monto_inicial']:.2f}</td></tr>
-                <tr><td>+ Ventas Efectivo:</td><td align="right" style="color: #8DE2B9;">$ {resumen['ventas_efectivo']:.2f}</td></tr>
-                <tr><td>+ Ventas Transfer:</td><td align="right" style="color: #ACE0F4;">$ {resumen['ventas_transferencia']:.2f}</td></tr>
-                <tr><td>+ Ventas Fiadas:</td><td align="right" style="color: #E5C07B;">$ {resumen['ventas_fiadas']:.2f}</td></tr>
-                <tr><td>+ Cobros Deuda (Evo):</td><td align="right" style="color: #cdd6f4;">$ {resumen['pagos_deuda_efectivo']:.2f}</td></tr>
-                <tr><td>+ Cobros Deuda (Trans):</td><td align="right" style="color: #cdd6f4;">$ {resumen['pagos_deuda_transferencia']:.2f}</td></tr>
-                <tr><td>+ Ingresos Manuales:</td><td align="right" style="color: #cdd6f4;">$ {resumen['ingresos_manuales']:.2f}</td></tr>
-                <tr><td>- Egresos Manuales:</td><td align="right" style="color: #E28D8D;">$ {resumen['egresos_manuales']:.2f}</td></tr>
+            <table width="100%" cellspacing="8" cellpadding="0" style="color: #0F172A;">
+                <tr><td>Saldo Inicial:</td><td align="right" style="color: #64748B;">$ {resumen['monto_inicial']:.2f}</td></tr>
+                <tr><td>+ Ventas Efectivo:</td><td align="right" style="color: #10B981;">$ {resumen['ventas_efectivo']:.2f}</td></tr>
+                <tr><td>+ Ventas Transfer:</td><td align="right" style="color: #0284C7;">$ {resumen['ventas_transferencia']:.2f}</td></tr>
+                <tr><td>+ Ventas Fiadas:</td><td align="right" style="color: #D97706;">$ {resumen['ventas_fiadas']:.2f}</td></tr>
+                <tr><td>+ Cobros Deuda (Evo):</td><td align="right" style="color: #10B981;">$ {resumen['pagos_deuda_efectivo']:.2f}</td></tr>
+                <tr><td>+ Cobros Deuda (Trans):</td><td align="right" style="color: #0284C7;">$ {resumen['pagos_deuda_transferencia']:.2f}</td></tr>
+                <tr><td>+ Ingresos Manuales:</td><td align="right" style="color: #10B981;">$ {resumen['ingresos_manuales']:.2f}</td></tr>
+                <tr><td>- Egresos Manuales:</td><td align="right" style="color: #EF4444;">$ {resumen['egresos_manuales']:.2f}</td></tr>
             </table>
             <br>
-            <hr style="background-color: #32404D; border: none; height: 1px;"/>
+            <hr style="background-color: #E2E8F0; border: none; height: 1px;"/>
             <br>
-            <table width="100%" cellspacing="5">
+            <table width="100%" cellspacing="5" style="color: #0F172A;">
                 <tr>
                     <td style="font-size: 14px;"><b>SALDO EFECTIVO CAJA:</b></td>
-                    <td align="right"><b style="color: #8DE2B9; font-size: 18px;">$ {resumen['total_efectivo_esperado']:.2f}</b></td>
+                    <td align="right"><b style="color: #10B981; font-size: 18px;">$ {resumen['total_efectivo_esperado']:.2f}</b></td>
                 </tr>
                 <tr>
                     <td style="font-size: 14px;"><b>TOTAL VENDIDO:</b></td>
-                    <td align="right"><b style="color: #ACE0F4; font-size: 18px;">$ {resumen['total_vendido']:.2f}</b></td>
+                    <td align="right"><b style="color: #0284C7; font-size: 18px;">$ {resumen['total_vendido']:.2f}</b></td>
                 </tr>
             </table>
             """
@@ -320,7 +319,7 @@ class ReportesView(QWidget):
         layout = QVBoxLayout(self.tab_alertas)
         
         lbl_info = QLabel("Productos cuyo stock actual es menor o igual a su stock mínimo.")
-        lbl_info.setStyleSheet("color: #E28D8D; font-style: italic;")
+        lbl_info.setStyleSheet("color: #EF4444; font-style: italic;")
         layout.addWidget(lbl_info)
         
         self.tabla_alertas = QTableWidget(0, 5)
@@ -339,10 +338,10 @@ class ReportesView(QWidget):
         resumen_layout = QHBoxLayout()
         resumen_layout.setSpacing(15)
         
-        self.frame_g_ventas, self.lbl_ganancia_ventas = self.crear_tarjeta_resumen("TOTAL VENDIDO", "$0.00", "#ACE0F4")
-        self.frame_g_costo, self.lbl_ganancia_costo = self.crear_tarjeta_resumen("COSTO TOTAL", "$0.00", "#E28D8D")
-        self.frame_g_neta, self.lbl_ganancia_neta = self.crear_tarjeta_resumen("GANANCIA NETA", "$0.00", "#8DE2B9")
-        self.frame_g_rent, self.lbl_rentabilidad_pct = self.crear_tarjeta_resumen("RENTABILIDAD", "0.00%", "#E5C07B")
+        self.frame_g_ventas, self.lbl_ganancia_ventas = self.crear_tarjeta_resumen("TOTAL VENDIDO", "$0.00", "#0284C7")
+        self.frame_g_costo, self.lbl_ganancia_costo = self.crear_tarjeta_resumen("COSTO TOTAL", "$0.00", "#EF4444")
+        self.frame_g_neta, self.lbl_ganancia_neta = self.crear_tarjeta_resumen("GANANCIA NETA", "$0.00", "#10B981")
+        self.frame_g_rent, self.lbl_rentabilidad_pct = self.crear_tarjeta_resumen("RENTABILIDAD", "0.00%", "#D97706")
         
         resumen_layout.addWidget(self.frame_g_ventas)
         resumen_layout.addWidget(self.frame_g_costo)
@@ -518,15 +517,15 @@ class ReportesView(QWidget):
             return
 
         html = f"""
-        <div style="color: #a6adc8; font-weight: bold; margin-bottom: 15px; font-size: 12px; letter-spacing: 1px;">ARTÍCULOS VENDIDOS</div>
+        <div style="color: #64748B; font-weight: bold; margin-bottom: 15px; font-size: 12px; letter-spacing: 1px;">ARTÍCULOS VENDIDOS</div>
         <table width="100%" cellspacing="5">
         """
         total = 0.0
         for d in detalles:
             html += f"""
             <tr>
-                <td style="font-size: 14px; padding-bottom: 8px;">{d['cantidad']}x <b style="color: #cdd6f4;">{d['nombre']}</b><br><span style="color: #7f849c; font-size: 12px;">${d['precio_unitario']:.2f} c/u</span></td>
-                <td align="right" valign="top" style="color: #cdd6f4; font-size: 14px; padding-bottom: 8px;">${d['subtotal']:.2f}</td>
+                <td style="font-size: 14px; padding-bottom: 8px; color: #0F172A;">{d['cantidad']}x <b>{d['nombre']}</b><br><span style="color: #64748B; font-size: 12px;">${d['precio_unitario']:.2f} c/u</span></td>
+                <td align="right" valign="top" style="color: #0F172A; font-size: 14px; padding-bottom: 8px;">${d['subtotal']:.2f}</td>
             </tr>
             """
             total += d['subtotal']
@@ -534,12 +533,12 @@ class ReportesView(QWidget):
         html += f"""
         </table>
         <br>
-        <hr style="background-color: #32404D; border: none; height: 1px;"/>
+        <hr style="background-color: #E2E8F0; border: none; height: 1px;"/>
         <br>
-        <table width="100%">
+        <table width="100%" style="color: #0F172A;">
             <tr>
                 <td style="font-size: 14px;"><b>TOTAL DE LA VENTA:</b></td>
-                <td align="right"><b style="color: #8DE2B9; font-size: 20px;">${total:.2f}</b></td>
+                <td align="right"><b style="color: #10B981; font-size: 20px;">${total:.2f}</b></td>
             </tr>
         </table>
         """

@@ -21,12 +21,12 @@ class DeudoresView(QWidget):
         
         lbl_titulo = QLabel("CUENTAS CORRIENTES (DEUDORES)")
         lbl_titulo.setFont(QFont("Segoe UI", 20, QFont.Weight.Bold))
-        lbl_titulo.setStyleSheet("color: #ACE0F4; margin-bottom: 10px;")
+        lbl_titulo.setStyleSheet("color: #0284C7; margin-bottom: 10px;")
         layout.addWidget(lbl_titulo)
 
         # --- Filtro ---
         filtro_frame = QFrame()
-        filtro_frame.setStyleSheet("QFrame { background-color: #1A2026; border-radius: 8px; padding: 10px; }")
+        filtro_frame.setStyleSheet("QFrame { background-color: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px; }")
         filtro_layout = QHBoxLayout(filtro_frame)
         
         filtro_layout.addWidget(QLabel("Seleccionar Cliente:"))
@@ -47,13 +47,13 @@ class DeudoresView(QWidget):
         resumen_layout = QHBoxLayout(resumen_frame)
         self.lbl_saldo = QLabel("Saldo Pendiente: $0.00")
         self.lbl_saldo.setFont(QFont("Segoe UI", 18, QFont.Weight.Bold))
-        self.lbl_saldo.setStyleSheet("color: #E28D8D;")
+        self.lbl_saldo.setStyleSheet("color: #EF4444;")
         resumen_layout.addWidget(self.lbl_saldo)
         
         resumen_layout.addStretch()
         
         self.btn_pagar = QPushButton("REGISTRAR PAGO / A FAVOR")
-        self.btn_pagar.setStyleSheet("background-color: #8DE2B9; color: #161B22; font-weight: bold; font-size: 16px; padding: 10px 20px;")
+        self.btn_pagar.setStyleSheet("background-color: #10B981; color: #FFFFFF; font-weight: bold; font-size: 14px; border-radius: 6px; padding: 10px 20px; border: none;")
         self.btn_pagar.clicked.connect(self.registrar_pago)
         resumen_layout.addWidget(self.btn_pagar)
         layout.addWidget(resumen_frame)
@@ -106,13 +106,13 @@ class DeudoresView(QWidget):
         saldo = CtaCteManager.get_saldo(cliente_id)
         if saldo > 0:
             self.lbl_saldo.setText(f"Saldo Pendiente (Deuda): ${saldo:.2f}")
-            self.lbl_saldo.setStyleSheet("color: #E28D8D;")
+            self.lbl_saldo.setStyleSheet("color: #EF4444;")
         elif saldo < 0:
             self.lbl_saldo.setText(f"Saldo A Favor: ${abs(saldo):.2f}")
-            self.lbl_saldo.setStyleSheet("color: #8DE2B9;")
+            self.lbl_saldo.setStyleSheet("color: #10B981;")
         else:
             self.lbl_saldo.setText(f"Saldo: $0.00")
-            self.lbl_saldo.setStyleSheet("color: #cdd6f4;")
+            self.lbl_saldo.setStyleSheet("color: #64748B;")
             
         historial = CtaCteManager.get_historial(cliente_id)
         self.tabla.setRowCount(0)
@@ -163,7 +163,7 @@ class PagoDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Registrar Pago")
         self.setFixedSize(300, 200)
-        self.setStyleSheet("QDialog { background-color: #161B22; color: #cdd6f4; } QLabel { color: #cdd6f4; }")
+        self.setStyleSheet("QDialog { background-color: #FFFFFF; color: #0F172A; } QLabel { color: #0F172A; }")
         
         layout = QVBoxLayout(self)
         
@@ -176,22 +176,20 @@ class PagoDialog(QDialog):
         self.spin_monto.setRange(0.01, 10000000.0) # Permitir monto libre, no limitado al saldo
         self.spin_monto.setValue(saldo if saldo > 0 else 0.0)
         self.spin_monto.setDecimals(2)
-        self.spin_monto.setStyleSheet("background-color: #32404D; color: #cdd6f4; padding: 5px;")
         layout.addWidget(self.spin_monto)
         
         layout.addWidget(QLabel("Método / Tipo:"))
         self.cb_metodo = QComboBox()
         self.cb_metodo.addItems(["EFECTIVO", "TRANSFERENCIA", "CANJE / MERCADERIA"])
-        self.cb_metodo.setStyleSheet("background-color: #32404D; color: #cdd6f4; padding: 5px;")
         layout.addWidget(self.cb_metodo)
         
         btn_layout = QHBoxLayout()
         btn_aceptar = QPushButton("Aceptar")
-        btn_aceptar.setStyleSheet("background-color: #8DE2B9; color: #161B22; font-weight: bold; padding: 5px;")
+        btn_aceptar.setStyleSheet("background-color: #10B981; color: #FFFFFF; font-weight: bold; border-radius: 6px; padding: 8px 16px; border: none;")
         btn_aceptar.clicked.connect(self.accept)
         
         btn_cancelar = QPushButton("Cancelar")
-        btn_cancelar.setStyleSheet("background-color: #E28D8D; color: #161B22; font-weight: bold; padding: 5px;")
+        btn_cancelar.setStyleSheet("background-color: #EF4444; color: #FFFFFF; font-weight: bold; border-radius: 6px; padding: 8px 16px; border: none;")
         btn_cancelar.clicked.connect(self.reject)
         
         btn_layout.addWidget(btn_aceptar)

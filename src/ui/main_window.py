@@ -53,7 +53,7 @@ class MainWindow(QMainWindow):
         # --- Menú Lateral ---
         sidebar = QWidget()
         sidebar.setFixedWidth(260)
-        sidebar.setStyleSheet("background-color: #161B22; color: #E5EEF2; border-right: 1px solid #232B33;")
+        sidebar.setStyleSheet("background-color: #FFFFFF; color: #0F172A; border-right: 1px solid #E2E8F0;")
         sidebar_layout = QVBoxLayout(sidebar)
         sidebar_layout.setContentsMargins(15, 15, 15, 15)
         sidebar_layout.setSpacing(6)
@@ -82,7 +82,7 @@ class MainWindow(QMainWindow):
             lbl_brand.setStyleSheet("margin-bottom: 10px; background: transparent;")
         else:
             lbl_brand.setText("IVAN LLORENS")
-            lbl_brand.setStyleSheet("font-size: 22px; font-weight: 800; color: #ACE0F4; margin-bottom: 10px; border: none;")
+            lbl_brand.setStyleSheet("font-size: 22px; font-weight: 800; color: #0284C7; margin-bottom: 10px; border: none;")
         
         sidebar_layout.addWidget(lbl_brand)
 
@@ -176,7 +176,7 @@ class MainWindow(QMainWindow):
         btn.setStyleSheet("""
             QPushButton {
                 background-color: transparent;
-                color: #9EB3C2;
+                color: #475569;
                 border: none;
                 border-radius: 8px;
                 font-size: 15px;
@@ -185,17 +185,17 @@ class MainWindow(QMainWindow):
                 padding-left: 20px;
             }
             QPushButton:hover {
-                background-color: #232B33;
-                color: #E5EEF2;
+                background-color: #F1F5F9;
+                color: #0F172A;
             }
             QPushButton:pressed {
-                background-color: #32404D;
-                color: #ACE0F4;
+                background-color: #E2E8F0;
+                color: #0284C7;
             }
             QPushButton:checked {
-                background-color: #232B33;
-                color: #ACE0F4;
-                border-left: 4px solid #ACE0F4;
+                background-color: #E0F2FE;
+                color: #0284C7;
+                border-left: 4px solid #0284C7;
                 border-top-left-radius: 4px;
                 border-bottom-left-radius: 4px;
             }
