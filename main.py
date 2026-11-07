@@ -1,7 +1,9 @@
 import sys
-from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication, QDialog
 from src.db.database import init_db
 from src.ui.main_window import MainWindow
+from src.ui.login_dialog import LoginDialog
+from src.core.auth_manager import AuthManager
 
 def main():
     # 1. Inicializar la base de datos (crea el archivo y tablas si no existen)
@@ -163,11 +165,20 @@ def main():
     """
     app.setStyleSheet(modern_style)
     
-    # 3. Crear y mostrar ventana principal
-    window = MainWindow()
-    window.showMaximized() # Mejor maximizado por defecto
-    
-    sys.exit(app.exec())
+    # No se crea ninguna vista operativa antes de autenticar al responsable.
+    exit_code = 0
+    while True:
+        dialog = LoginDialog()
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            break
+        window = MainWindow()
+        window.showMaximized()
+        exit_code = app.exec()
+        AuthManager.logout()
+        if not window.login_again:
+            break
+        window.deleteLater()
+    sys.exit(exit_code)
 
 if __name__ == "__main__":
     main()

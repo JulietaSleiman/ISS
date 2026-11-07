@@ -1,5 +1,6 @@
 import sqlite3
 from src.db.database import get_connection
+from src.core.auth_manager import AuthManager
 
 class ReportesManager:
     @staticmethod
@@ -65,12 +66,19 @@ class ReportesManager:
         cursor = conn.cursor()
         
         cursor.execute("""
-            SELECT p.codigo_barras, p.nombre, sum(vd.cantidad) as cant_total, sum(vd.subtotal) as recaudacion
+            SELECT
+                CASE WHEN vd.producto_id IS NOT NULL THEN p.codigo_barras
+                     ELSE 'PROMO' END as codigo_barras,
+                CASE WHEN vd.producto_id IS NOT NULL THEN p.nombre
+                     WHEN pr.nombre IS NOT NULL THEN 'PROMO: ' || pr.nombre
+                     ELSE 'Combo/Promoción' END as nombre,
+                sum(vd.cantidad) as cant_total, sum(vd.subtotal) as recaudacion
             FROM ventas_detalle vd
             JOIN ventas v ON vd.venta_id = v.id
-            JOIN productos p ON vd.producto_id = p.id
+            LEFT JOIN productos p ON vd.producto_id = p.id
+            LEFT JOIN promociones pr ON vd.promocion_id = pr.id
             WHERE v.estado != 'CANCELADA' AND datetime(v.fecha, 'localtime') BETWEEN ? AND ?
-            GROUP BY p.id
+            GROUP BY vd.producto_id, vd.promocion_id
             ORDER BY cant_total DESC
         """, (desde, hasta))
         
@@ -80,6 +88,7 @@ class ReportesManager:
 
     @staticmethod
     def get_cierres_caja(fecha_desde: str, fecha_hasta: str):
+        user = AuthManager.require_user()
         desde = f"{fecha_desde} 00:00:00"
         hasta = f"{fecha_hasta} 23:59:59"
         
@@ -87,11 +96,13 @@ class ReportesManager:
         cursor = conn.cursor()
         
         cursor.execute("""
-            SELECT id, monto_inicial, fecha_apertura, fecha_cierre, monto_cierre, estado
+            SELECT id, monto_inicial, fecha_apertura, fecha_cierre, monto_cierre, estado,
+                   responsable_nombre, cierre_usuario_nombre, monto_esperado, diferencia
             FROM caja_sesiones
             WHERE datetime(fecha_apertura, 'localtime') BETWEEN ? AND ?
+              AND (sucursal_id = ? OR sucursal_id IS NULL)
             ORDER BY fecha_apertura DESC
-        """, (desde, hasta))
+        """, (desde, hasta, user.branch_id))
         
         cierres = cursor.fetchall()
         conn.close()

@@ -153,7 +153,11 @@ class DeudasProveedoresView(QWidget):
             QMessageBox.information(self, "Aviso", "No hay deuda pendiente con este proveedor.")
             return
             
-        sesion = CajaManager.obtener_sesion_activa()
+        try:
+            sesion = CajaManager.obtener_sesion_activa()
+        except Exception as exc:
+            QMessageBox.warning(self, "Revisar caja", str(exc))
+            return
         if not sesion:
             QMessageBox.critical(self, "Caja Cerrada", "Debe abrir la caja diaria para poder registrar un egreso de dinero.")
             return

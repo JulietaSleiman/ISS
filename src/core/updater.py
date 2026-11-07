@@ -8,8 +8,8 @@ from PyQt6.QtCore import QThread, pyqtSignal, Qt
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QProgressBar, QPushButton, QHBoxLayout, QMessageBox, QApplication
 
-CURRENT_VERSION = "1.0.5"
-GITHUB_REPO = "BernabeFigueroa/BF"  # Repositorio oficial para releases/binarios
+CURRENT_VERSION = "1.1.0"
+GITHUB_REPO = "JulietaSleiman/ISS"  # Releases oficiales de este sistema de ventas
 GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 
 class UpdateCheckerThread(QThread):
@@ -245,8 +245,11 @@ class UpdateDialog(QDialog):
 
     def on_download_finished(self, new_exe_path):
         self.lbl_status.setText("Descarga finalizada. Aplicando actualización...")
-        apply_update_and_restart(new_exe_path)
-        self.accept()
+        if apply_update_and_restart(new_exe_path):
+            self.accept()
+        else:
+            self.btn_update.setEnabled(True)
+            self.btn_cancel.setEnabled(True)
 
     def on_download_error(self, error_msg):
         self.lbl_status.setText("Error en la descarga.")
@@ -259,11 +262,11 @@ def apply_update_and_restart(new_exe_path):
     """
     Ejecuta el reemplazo seguro del ejecutable y vuelve a iniciar la app.
     Maneja procesos en ejecución, rutas con caracteres especiales (Unicode) y permisos en Windows
-    de manera 100% silenciosa y confiable mediante PowerShell.
+    mediante PowerShell, conservando el ejecutable anterior si falla el reemplazo.
     """
     if not getattr(sys, 'frozen', False):
         QMessageBox.information(None, "Modo Desarrollo", f"Descargado con éxito en:\n{new_exe_path}\n(En modo ejecutable se aplica el reemplazo automático y reinicio)")
-        return
+        return True
 
     import tempfile
     current_exe = os.path.abspath(sys.executable)
@@ -313,11 +316,15 @@ Start-Sleep -Milliseconds 800
 # 2. Reintentos de reemplazo (hasta 30 intentos con pausas de 500ms)
 $attempts = 0
 $replaced = $false
+$stagedExe = $currentExe + '.update'
+$backupExe = $currentExe + '.previous'
 
 while ($attempts -lt 30) {{
     $attempts++
     try {{
-        Copy-Item -LiteralPath $newExe -Destination $currentExe -Force -ErrorAction Stop
+        # Copiar primero junto al destino permite un reemplazo atomico en el mismo volumen.
+        Copy-Item -LiteralPath $newExe -Destination $stagedExe -Force -ErrorAction Stop
+        [System.IO.File]::Replace($stagedExe, $currentExe, $backupExe)
         $replaced = $true
         Log-Msg ("Archivo reemplazado con éxito en intento " + $attempts)
         break
@@ -328,14 +335,14 @@ while ($attempts -lt 30) {{
     }}
 }}
 
-# 3. Limpieza de archivo temporal y residuos de _internal (evita conflicto PyInstaller onedir/onefile)
-try {{
+# 3. Limpiar solo la descarga aplicada. Conservar dependencias de la instalacion anterior:
+# el ejecutable onefile no necesita eliminar la carpeta _internal para actualizarse.
+if ($replaced) {{
     Remove-Item -LiteralPath $newExe -Force -ErrorAction SilentlyContinue
-    $internalDir = Join-Path -Path $workingDir -ChildPath "_internal"
-    if (Test-Path -LiteralPath $internalDir) {{
-        Remove-Item -LiteralPath $internalDir -Recurse -Force -ErrorAction SilentlyContinue
-    }}
-}} catch {{}}
+}} else {{
+    Log-Msg "No se pudo actualizar. Se conserva la version anterior y la descarga."
+}}
+Remove-Item -LiteralPath $stagedExe -Force -ErrorAction SilentlyContinue
 
 # 4. Iniciar la nueva versión en modo visible y con el directorio de trabajo correcto
 if ($replaced -or (Test-Path -LiteralPath $currentExe)) {{
@@ -369,7 +376,8 @@ try {{
             creationflags=CREATE_NO_WINDOW
         )
     except Exception as e:
-        print(f"Error lanzando updater: {e}")
+        QMessageBox.warning(None, "Error de actualización", f"No se pudo iniciar la actualización:\n{e}")
+        return False
 
     # Forzar salida inmediata del proceso para liberar el ejecutable en disco
     QApplication.quit()

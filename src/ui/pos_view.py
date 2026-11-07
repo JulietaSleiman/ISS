@@ -28,9 +28,14 @@ class POSView(QWidget):
         self.init_ui()
 
     def verificar_caja(self):
-        sesion = CajaManager.obtener_sesion_activa()
+        try:
+            sesion = CajaManager.obtener_sesion_activa()
+        except Exception as exc:
+            QMessageBox.warning(self, "Revisar caja", str(exc))
+            return False
         if not sesion:
             QMessageBox.warning(self, "Caja Cerrada", "Debe abrir la caja antes de realizar ventas.")
+        return bool(sesion)
 
     def crear_seccion_frame(self):
         frame = QFrame()

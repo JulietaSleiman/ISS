@@ -1,14 +1,17 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QComboBox,
     QPushButton, QMessageBox, QFrame, QGridLayout, QSpacerItem, QSizePolicy,
-    QTableWidget, QTableWidgetItem, QHeaderView
+    QTableWidget, QTableWidgetItem, QHeaderView, QInputDialog
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
 
-from src.core.caja_manager import CajaManager
+from src.core.caja_manager import CajaManager, CajaAnteriorError
+from src.core.auth_manager import AuthManager
 
 class CajaView(QWidget):
+    caja_cerrada = pyqtSignal()
+
     def __init__(self):
         super().__init__()
         self.sesion_activa = None
@@ -60,6 +63,19 @@ class CajaView(QWidget):
         header_layout.addWidget(self.lbl_estado_caja)
         
         layout_principal.addLayout(header_layout)
+
+        self.frame_bloqueo, bloqueo_layout = self.crear_tarjeta("Revisar turno anterior")
+        self.lbl_bloqueo = QLabel()
+        self.lbl_bloqueo.setWordWrap(True)
+        self.lbl_bloqueo.setStyleSheet("font-size: 14px; color: #475569;")
+        bloqueo_layout.addWidget(self.lbl_bloqueo)
+        self.cb_cajas_anteriores = QComboBox()
+        bloqueo_layout.addWidget(self.cb_cajas_anteriores)
+        self.btn_cerrar_anterior = QPushButton("Cerrar caja anterior")
+        self.btn_cerrar_anterior.clicked.connect(self.cerrar_caja_anterior)
+        bloqueo_layout.addWidget(self.btn_cerrar_anterior)
+        self.frame_bloqueo.setVisible(False)
+        layout_principal.addWidget(self.frame_bloqueo)
 
         # Main Content Layout (Split Left and Right)
         content_layout = QHBoxLayout()
@@ -173,6 +189,7 @@ class CajaView(QWidget):
             ("Cobros Deuda (Trans)", "pagos_deuda_transferencia", "#0284C7"),
             ("Ingresos Manuales", "ingresos_manuales", "#10B981"),
             ("Egresos Manuales", "egresos_manuales", "#EF4444"),
+            ("Pagos a Proveedores (Efectivo)", "pagos_proveedor_efectivo", "#EF4444"),
         ]
         
         row = 0
@@ -244,10 +261,46 @@ class CajaView(QWidget):
         layout_principal.addLayout(content_layout)
 
     def actualizar_estado(self):
-        self.sesion_activa = CajaManager.obtener_sesion_activa()
+        self.frame_bloqueo.setVisible(False)
+        self.cb_cajas_anteriores.clear()
+        self.cb_cajas_anteriores.setVisible(False)
+        self.btn_cerrar_anterior.setVisible(False)
+        try:
+            self.sesion_activa = CajaManager.obtener_sesion_activa()
+        except Exception as exc:
+            self.sesion_activa = None
+            self.lbl_estado_caja.setText("REVISIÓN DE TURNO")
+            self.lbl_estado_caja.setStyleSheet("color: #B45309;")
+            self.frame_apertura.setVisible(False)
+            self.frame_movimientos.setVisible(False)
+            self.frame_tabla.setVisible(False)
+            self.frame_cierre.setVisible(False)
+            self.frame_bloqueo.setVisible(True)
+            self.lbl_bloqueo.setText(str(exc))
+            anteriores = []
+            if isinstance(exc, CajaAnteriorError):
+                try:
+                    anteriores = CajaManager.obtener_cajas_anteriores()
+                except Exception:
+                    pass
+            if anteriores:
+                self.lbl_bloqueo.setText(
+                    "Hay un turno de una versión anterior sin responsable de apertura registrado. "
+                    "Para comenzar un turno nuevo, revise el efectivo y cierre expresamente la caja anterior. "
+                    "Se creará un respaldo antes de registrar el cierre. El historial original se conserva; "
+                    "este cierre histórico permanecerá local y no se enviará a Supabase."
+                )
+                for caja in anteriores:
+                    self.cb_cajas_anteriores.addItem(
+                        f"Turno #{caja['id']} · Apertura: {caja['fecha_apertura']}", caja['id'],
+                    )
+                self.cb_cajas_anteriores.setVisible(True)
+                self.btn_cerrar_anterior.setVisible(True)
+            return
         
         if self.sesion_activa:
-            self.lbl_estado_caja.setText(f"● ABIERTA (Inicio: {self.sesion_activa['fecha_apertura']})")
+            responsable = self.sesion_activa.get('responsable_nombre') or 'Sin responsable registrado'
+            self.lbl_estado_caja.setText(f"● ABIERTA · {responsable}\nInicio: {self.sesion_activa['fecha_apertura']}")
             self.lbl_estado_caja.setStyleSheet("color: #10B981;")
             self.frame_apertura.setVisible(False)
             self.frame_movimientos.setVisible(True)
@@ -269,6 +322,62 @@ class CajaView(QWidget):
             self.actualizar_estado()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudo abrir la caja:\n{str(e)}")
+
+    def cerrar_caja_anterior(self):
+        caja_id = self.cb_cajas_anteriores.currentData()
+        if caja_id is None:
+            return
+        try:
+            user = AuthManager.require_user()
+            cajas = CajaManager.obtener_cajas_anteriores()
+            caja = next((c for c in cajas if c['id'] == caja_id), None)
+            if caja is None:
+                self.actualizar_estado()
+                return
+            contado, accepted = QInputDialog.getDouble(
+                self, "Contar efectivo de la caja anterior",
+                f"Turno #{caja_id}. Ingrese el efectivo realmente contado:",
+                0.0, 0.0, 999999999.99, 2,
+            )
+            if not accepted:
+                return
+            motivo, accepted = QInputDialog.getMultiLineText(
+                self, "Motivo del cierre anterior",
+                "Describa el motivo de la regularización (al menos 10 caracteres):", "",
+            )
+            if not accepted:
+                return
+            motivo = motivo.strip()
+            if len(motivo) < 10:
+                QMessageBox.warning(self, "Motivo obligatorio", "Ingrese un motivo de al menos 10 caracteres.")
+                return
+            esperado = CajaManager.obtener_resumen(caja_id)['total_efectivo_esperado']
+            reply = QMessageBox.question(
+                self, "Confirmar cierre de caja anterior",
+                f"Turno #{caja_id}\nApertura: {caja['fecha_apertura']}\n"
+                "Responsable de apertura: No registrado (versión anterior)\n"
+                f"Usuario que regulariza: {user.username}\n\n"
+                f"Efectivo esperado: ${esperado:,.2f}\nContado: ${contado:,.2f}\n"
+                f"Diferencia: ${contado - esperado:,.2f}\nMotivo: {motivo}\n\n"
+                "Se creará un respaldo y se registrará este cierre en el historial local. "
+                "No se enviará a Supabase. ¿Confirmar?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+            if reply != QMessageBox.StandardButton.Yes:
+                return
+            cierre = CajaManager.cerrar_caja_anterior(caja_id, contado, motivo)
+            self.actualizar_estado()
+            QMessageBox.information(
+                self, "Caja anterior cerrada",
+                f"Turno #{cierre['caja_id']} cerrado por {user.username}.\n"
+                f"Contado: ${cierre['contado']:,.2f}\nDiferencia: ${cierre['diferencia']:,.2f}\n\n"
+                f"Respaldo previo: {cierre['backup_path']}\n\n"
+                "El historial se conserva localmente, sin atribuir un responsable a la apertura anterior. "
+                "Si no quedan turnos anteriores abiertos, ya puede abrir un turno nuevo.",
+            )
+        except Exception as exc:
+            QMessageBox.critical(self, "No se pudo cerrar la caja anterior", str(exc))
 
     def registrar_movimiento(self):
         if not self.sesion_activa:
@@ -328,19 +437,39 @@ class CajaView(QWidget):
     def cerrar_caja(self):
         if not self.sesion_activa:
             return
-            
-        reply = QMessageBox.question(self, "Cerrar Caja", "¿Está seguro de cerrar el turno actual?",
-                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-        
-        if reply == QMessageBox.StandardButton.Yes:
-            try:
-                resumen = CajaManager.obtener_resumen(self.sesion_activa['id'])
-                monto_cierre = resumen['total_efectivo_esperado']
-                CajaManager.cerrar_caja(monto_cierre)
-                QMessageBox.information(self, "Caja Cerrada", f"Turno cerrado.\n\nSaldo final declarado: ${monto_cierre:,.2f}")
-                self.actualizar_estado()
-            except Exception as e:
-                QMessageBox.critical(self, "Error", f"Fallo al cerrar:\n{str(e)}")
+        try:
+            user = AuthManager.require_user()
+            contado, accepted = QInputDialog.getDouble(
+                self, "Contar efectivo", "Ingrese el efectivo realmente contado en caja:",
+                0.0, 0.0, 999999999.99, 2,
+            )
+            if not accepted:
+                return
+            esperado = CajaManager.obtener_resumen(self.sesion_activa['id'])['total_efectivo_esperado']
+            reply = QMessageBox.question(
+                self, "Confirmar cierre",
+                f"Usuario que cierra: {user.username}\n"
+                f"Responsable de apertura: {self.sesion_activa.get('responsable_nombre') or 'Sin registrar'}\n\n"
+                f"Efectivo esperado: ${esperado:,.2f}\n"
+                f"Efectivo contado: ${contado:,.2f}\n"
+                f"Diferencia: ${contado - esperado:,.2f}\n\n¿Registrar el cierre?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+            if reply != QMessageBox.StandardButton.Yes:
+                return
+            cierre = CajaManager.cerrar_caja(contado)
+            self.actualizar_estado()
+            self.caja_cerrada.emit()
+            QMessageBox.information(
+                self, "Caja cerrada",
+                f"Cierre registrado por {user.username}.\n"
+                f"Contado: ${cierre['monto_cierre']:,.2f}\n"
+                f"Diferencia: ${cierre['diferencia']:,.2f}\n\n"
+                "El cierre quedó guardado localmente y se enviará cuando haya conexión.",
+            )
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Fallo al cerrar:\n{str(e)}")
 
     def showEvent(self, event):
         super().showEvent(event)

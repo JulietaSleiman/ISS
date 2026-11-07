@@ -1,4 +1,8 @@
+from contextlib import closing
+
 from src.db.database import get_connection
+from src.core.auth_manager import AuthManager
+from src.core.entity_sync_store import EntitySyncStore
 
 class ProductosManager:
     @staticmethod
@@ -47,97 +51,105 @@ class ProductosManager:
         return producto
 
     @staticmethod
+    def _valores(codigo_barras, nombre, costo_lista, flete, utilidad_porcentaje,
+                 precio_contado, precio_tarjeta, stock_actual, stock_minimo, stock_maximo,
+                 categoria_id, proveedor_id, codigo_fabrica, unidades_bulto, ubicacion, observaciones):
+        if not isinstance(nombre, str) or not nombre.strip():
+            raise ValueError("Ingrese el nombre del producto.")
+        values = {
+            'codigo_barras': codigo_barras.strip() if codigo_barras and codigo_barras.strip() else None,
+            'codigo_fabrica': codigo_fabrica, 'nombre': nombre.strip(),
+            'categoria_id': categoria_id, 'proveedor_id': proveedor_id,
+            'unidades_bulto': unidades_bulto, 'ubicacion': ubicacion, 'observaciones': observaciones,
+        }
+        for field, value in (
+            ('costo_lista', costo_lista), ('flete', flete), ('utilidad_porcentaje', utilidad_porcentaje),
+            ('precio_contado', precio_contado), ('precio_tarjeta', precio_tarjeta),
+            ('stock_actual', stock_actual), ('stock_minimo', stock_minimo), ('stock_maximo', stock_maximo),
+        ):
+            values[field] = EntitySyncStore._number(value, field)
+        values['costo_final'] = EntitySyncStore._number(values['costo_lista'] + values['flete'], 'costo_final')
+        if values['precio_contado'] < 0 or values['precio_tarjeta'] < 0:
+            raise ValueError('Los precios de contado y tarjeta no pueden ser negativos.')
+        return values
+
+    @staticmethod
     def crear_producto(codigo_barras, nombre, costo_lista, flete, utilidad_porcentaje, precio_contado, precio_tarjeta, stock_actual, stock_minimo, stock_maximo=100.0, categoria_id=None, proveedor_id=None, codigo_fabrica="", unidades_bulto=1, ubicacion="", observaciones=""):
-        costo_final = float(costo_lista) + float(flete)
-        
-        # El código de barras debe ser None si está vacío para evitar problemas de UNIQUE
-        codigo_barras = codigo_barras.strip() if codigo_barras and codigo_barras.strip() else None
-        
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("""
-            INSERT INTO productos (
-                codigo_barras, codigo_fabrica, nombre, costo_lista, flete, costo_final, 
-                utilidad_porcentaje, precio_contado, precio_tarjeta, stock_actual, 
-                stock_minimo, stock_maximo, unidades_bulto, ubicacion, observaciones,
-                categoria_id, proveedor_id
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (codigo_barras, codigo_fabrica, nombre, costo_lista, flete, costo_final,
-                  utilidad_porcentaje, precio_contado, precio_tarjeta, stock_actual,
-                  stock_minimo, stock_maximo, unidades_bulto, ubicacion, observaciones,
-                  categoria_id, proveedor_id))
-            conn.commit()
-            return cursor.lastrowid
-        except Exception as e:
-            conn.rollback()
-            raise e
-        finally:
-            conn.close()
+        user = AuthManager.require_user()
+        values = ProductosManager._valores(codigo_barras, nombre, costo_lista, flete, utilidad_porcentaje,
+            precio_contado, precio_tarjeta, stock_actual, stock_minimo, stock_maximo,
+            categoria_id, proveedor_id, codigo_fabrica, unidades_bulto, ubicacion, observaciones)
+        with closing(get_connection()) as conn:
+            with conn:
+                conn.execute('BEGIN IMMEDIATE')
+                EntitySyncStore._bind(conn, user)
+                fields = ', '.join(values)
+                placeholders = ', '.join('?' for _ in values)
+                cursor = conn.execute(f'INSERT INTO productos ({fields}) VALUES ({placeholders})', tuple(values.values()))
+                product_id = cursor.lastrowid
+                EntitySyncStore.queue_product(conn, product_id, user)
+                return product_id
 
     @staticmethod
     def actualizar_producto(producto_id, codigo_barras, nombre, costo_lista, flete, utilidad_porcentaje, precio_contado, precio_tarjeta, stock_actual, stock_minimo, stock_maximo=100.0, categoria_id=None, proveedor_id=None, codigo_fabrica="", unidades_bulto=1, ubicacion="", observaciones=""):
-        costo_final = float(costo_lista) + float(flete)
-        codigo_barras = codigo_barras.strip() if codigo_barras and codigo_barras.strip() else None
-        
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("""
-            UPDATE productos SET 
-                codigo_barras = ?, codigo_fabrica = ?, nombre = ?, costo_lista = ?, flete = ?, 
-                costo_final = ?, utilidad_porcentaje = ?, precio_contado = ?, precio_tarjeta = ?, 
-                stock_actual = ?, stock_minimo = ?, stock_maximo = ?, unidades_bulto = ?, 
-                ubicacion = ?, observaciones = ?, categoria_id = ?, proveedor_id = ?
-            WHERE id = ?
-            """, (codigo_barras, codigo_fabrica, nombre, costo_lista, flete, costo_final,
-                  utilidad_porcentaje, precio_contado, precio_tarjeta, stock_actual,
-                  stock_minimo, stock_maximo, unidades_bulto, ubicacion, observaciones,
-                  categoria_id, proveedor_id, producto_id))
-            conn.commit()
-            return True
-        except Exception as e:
-            conn.rollback()
-            raise e
-        finally:
-            conn.close()
+        user = AuthManager.require_user()
+        values = ProductosManager._valores(codigo_barras, nombre, costo_lista, flete, utilidad_porcentaje,
+            precio_contado, precio_tarjeta, stock_actual, stock_minimo, stock_maximo,
+            categoria_id, proveedor_id, codigo_fabrica, unidades_bulto, ubicacion, observaciones)
+        with closing(get_connection()) as conn:
+            with conn:
+                conn.execute('BEGIN IMMEDIATE')
+                EntitySyncStore._bind(conn, user)
+                previous = conn.execute('SELECT * FROM productos WHERE id = ?', (producto_id,)).fetchone()
+                if previous is None:
+                    raise ValueError('No se encontró el producto.')
+                changed = [field for field, value in values.items() if previous[field] != value]
+                if not changed:
+                    return True
+                conn.execute('UPDATE productos SET ' + ', '.join(field + ' = ?' for field in values) + ' WHERE id = ?',
+                             (*values.values(), producto_id))
+                EntitySyncStore.queue_product(conn, producto_id, user, catalog_changed=any(field != 'stock_actual' for field in changed))
+                return True
+
+    @staticmethod
+    def _cambiar_estado(producto_id, activo):
+        user = AuthManager.require_user()
+        with closing(get_connection()) as conn:
+            with conn:
+                conn.execute('BEGIN IMMEDIATE')
+                EntitySyncStore._bind(conn, user)
+                previous = conn.execute('SELECT activo FROM productos WHERE id = ?', (producto_id,)).fetchone()
+                if previous is None:
+                    raise ValueError('No se encontró el producto.')
+                if bool(previous['activo']) == bool(activo):
+                    return True
+                conn.execute('UPDATE productos SET activo = ? WHERE id = ?', (int(activo), producto_id))
+                EntitySyncStore.queue_product(conn, producto_id, user)
+                return True
 
     @staticmethod
     def eliminar_producto(producto_id):
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("UPDATE productos SET activo = 0 WHERE id = ?", (producto_id,))
-            conn.commit()
-            return True
-        except Exception as e:
-            conn.rollback()
-            raise e
-        finally:
-            conn.close()
+        return ProductosManager._cambiar_estado(producto_id, False)
 
     @staticmethod
     def restaurar_producto(producto_id):
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("UPDATE productos SET activo = 1 WHERE id = ?", (producto_id,))
-            conn.commit()
-            return True
-        except Exception as e:
-            conn.rollback()
-            raise e
-        finally:
-            conn.close()
+        return ProductosManager._cambiar_estado(producto_id, True)
 
     @staticmethod
     def actualizar_stock(producto_id, cantidad_cambio):
-        conn = get_connection()
-        cursor = conn.cursor()
-        cursor.execute("UPDATE productos SET stock_actual = stock_actual + ? WHERE id = ?", (cantidad_cambio, producto_id))
-        conn.commit()
-        conn.close()
+        user = AuthManager.require_user()
+        delta = EntitySyncStore._number(cantidad_cambio, 'cantidad_cambio')
+        with closing(get_connection()) as conn:
+            with conn:
+                conn.execute('BEGIN IMMEDIATE')
+                EntitySyncStore._bind(conn, user)
+                product = conn.execute('SELECT id FROM productos WHERE id = ?', (producto_id,)).fetchone()
+                if product is None:
+                    raise ValueError('No se encontró el producto.')
+                if delta == 0:
+                    return
+                conn.execute('UPDATE productos SET stock_actual = stock_actual + ? WHERE id = ?', (delta, producto_id))
+                EntitySyncStore.queue_product(conn, producto_id, user, catalog_changed=False)
 
     @staticmethod
     def get_historial_producto(producto_id: int):

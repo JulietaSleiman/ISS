@@ -232,6 +232,92 @@ def init_db():
 
     # -- MIGRACIONES AUTOMÁTICAS --
 
+    # Identidad de los nuevos turnos. Los históricos permanecen sin atribución:
+    # no conocemos quién operó una caja antes de introducir el inicio de sesión.
+    cursor.execute("PRAGMA table_info(caja_sesiones)")
+    columnas_caja = {col['name'] for col in cursor.fetchall()}
+    nuevas_columnas = {
+        'sync_id': 'TEXT',
+        'sucursal_id': 'TEXT',
+        'responsable_id': 'TEXT',
+        'responsable_nombre': 'TEXT',
+        'cierre_usuario_id': 'TEXT',
+        'cierre_usuario_nombre': 'TEXT',
+        'monto_esperado': 'REAL',
+        'diferencia': 'REAL',
+    }
+    for nombre, tipo in nuevas_columnas.items():
+        if nombre not in columnas_caja:
+            cursor.execute(f"ALTER TABLE caja_sesiones ADD COLUMN {nombre} {tipo}")
+    cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS caja_sync_id ON caja_sesiones(sync_id)")
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS sync_cierres (
+            id TEXT PRIMARY KEY,
+            caja_sesion_id INTEGER NOT NULL UNIQUE REFERENCES caja_sesiones(id),
+            sucursal_id TEXT NOT NULL,
+            usuario_id TEXT NOT NULL,
+            payload TEXT NOT NULL,
+            estado TEXT NOT NULL DEFAULT 'PENDIENTE' CHECK (estado IN ('PENDIENTE', 'ENVIADO')),
+            intentos INTEGER NOT NULL DEFAULT 0,
+            ultimo_error TEXT,
+            creado_en TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            enviado_en TEXT
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS caja_regularizaciones (
+            caja_id INTEGER PRIMARY KEY REFERENCES caja_sesiones(id),
+            usuario_id TEXT NOT NULL,
+            nombre TEXT NOT NULL,
+            sucursal_id TEXT NOT NULL,
+            motivo TEXT NOT NULL CHECK (length(trim(motivo)) >= 10),
+            backup_path TEXT NOT NULL,
+            creado_en TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # Identidades globales por instalación ligada a una sucursal. Los ids int
+    # siguen siendo locales y nunca se usan como clave entre sucursales.
+    for tabla, columnas in (
+        ('productos', {'sync_id': 'TEXT', 'sync_revision': 'INTEGER NOT NULL DEFAULT 0',
+                       'catalog_revision': 'INTEGER NOT NULL DEFAULT 0'}),
+        ('ventas', {'sync_id': 'TEXT', 'sync_revision': 'INTEGER NOT NULL DEFAULT 0',
+                    'vendedor_id': 'TEXT'}),
+    ):
+        cursor.execute(f"PRAGMA table_info({tabla})")
+        existentes = {col['name'] for col in cursor.fetchall()}
+        for nombre, tipo in columnas.items():
+            if nombre not in existentes:
+                cursor.execute(f"ALTER TABLE {tabla} ADD COLUMN {nombre} {tipo}")
+        cursor.execute(f"CREATE UNIQUE INDEX IF NOT EXISTS {tabla}_sync_id ON {tabla}(sync_id)")
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS sync_entidades (
+            id TEXT PRIMARY KEY,
+            sucursal_id TEXT NOT NULL,
+            usuario_id TEXT NOT NULL,
+            tipo TEXT NOT NULL CHECK (tipo IN ('PRODUCTO', 'VENTA')),
+            entidad_id TEXT NOT NULL,
+            revision INTEGER NOT NULL CHECK (revision > 0),
+            payload TEXT NOT NULL,
+            estado TEXT NOT NULL DEFAULT 'PENDIENTE' CHECK (estado IN ('PENDIENTE', 'ENVIADO')),
+            intentos INTEGER NOT NULL DEFAULT 0,
+            ultimo_error TEXT,
+            creado_en TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            enviado_en TEXT,
+            UNIQUE (tipo, entidad_id, revision)
+        )
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS sync_entidades_pendientes ON sync_entidades(estado, sucursal_id, creado_en)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS sync_configuracion (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS sync_comandos_aplicados (
+            id TEXT PRIMARY KEY,
+            estado TEXT NOT NULL CHECK (estado IN ('APLICADO', 'CONFLICTO', 'NO_ENCONTRADO')),
+            resultado TEXT NOT NULL,
+            ack_en TEXT
+        )
+    """)
+
     cursor.execute("PRAGMA table_info(ventas_detalle)")
     columnas_vd = [col['name'] for col in cursor.fetchall()]
     
@@ -253,30 +339,14 @@ def init_db():
         except Exception as e:
             print("Error en migración automática de estructura:", e)
 
-    # Migrar costo histórico para ventas pasadas
-    try:
-        # Productos simples
-        cursor.execute("""
-        UPDATE ventas_detalle 
-        SET costo_unitario = (
-            SELECT costo_final FROM productos WHERE productos.id = ventas_detalle.producto_id
-        )
-        WHERE (costo_unitario = 0.0 OR costo_unitario IS NULL) AND producto_id IS NOT NULL
-        """)
-        
-        # Promociones / Combos
-        cursor.execute("""
-        UPDATE ventas_detalle
-        SET costo_unitario = (
-            SELECT COALESCE(SUM(p.costo_final * pd.cantidad_requerida), 0.0)
-            FROM promocion_detalles pd
-            JOIN productos p ON p.id = pd.producto_id
-            WHERE pd.promocion_id = ventas_detalle.promocion_id
-        )
-        WHERE (costo_unitario = 0.0 OR costo_unitario IS NULL) AND promocion_id IS NOT NULL
-        """)
-    except Exception as e:
-        print("Error al migrar costo_unitario histórico:", e)
+    # El costo es una instantánea de la venta: cero también es un valor válido.
+    # No reconstruir costos históricos con precios o composiciones actuales.
+
+    cursor.execute("PRAGMA table_info(ventas_detalle)")
+    columnas_snapshot = {col['name'] for col in cursor.fetchall()}
+    for nombre in ('nombre_sync', 'componentes_sync'):
+        if nombre not in columnas_snapshot:
+            cursor.execute(f"ALTER TABLE ventas_detalle ADD COLUMN {nombre} TEXT")
 
     conn.commit()
     conn.close()

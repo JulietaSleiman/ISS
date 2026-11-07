@@ -269,8 +269,11 @@ class ReportesView(QWidget):
     def setup_tab_caja(self):
         layout = QVBoxLayout(self.tab_caja)
         
-        self.tabla_caja = QTableWidget(0, 6)
-        self.tabla_caja.setHorizontalHeaderLabels(["ID Turno", "Estado", "Apertura", "Cierre", "Monto Inicial", "Saldo Final"])
+        self.tabla_caja = QTableWidget(0, 10)
+        self.tabla_caja.setHorizontalHeaderLabels([
+            "ID Turno", "Estado", "Apertura", "Cierre", "Monto inicial", "Contado",
+            "Responsable de apertura", "Usuario de cierre", "Esperado", "Diferencia",
+        ])
         self.tabla_caja.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
         self.tabla_caja.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
         self.tabla_caja.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
@@ -295,6 +298,7 @@ class ReportesView(QWidget):
                 <tr><td>+ Cobros Deuda (Trans):</td><td align="right" style="color: #0284C7;">$ {resumen['pagos_deuda_transferencia']:.2f}</td></tr>
                 <tr><td>+ Ingresos Manuales:</td><td align="right" style="color: #10B981;">$ {resumen['ingresos_manuales']:.2f}</td></tr>
                 <tr><td>- Egresos Manuales:</td><td align="right" style="color: #EF4444;">$ {resumen['egresos_manuales']:.2f}</td></tr>
+                <tr><td>- Pagos a Proveedores (Efectivo):</td><td align="right" style="color: #EF4444;">$ {resumen['pagos_proveedor_efectivo']:.2f}</td></tr>
             </table>
             <br>
             <hr style="background-color: #E2E8F0; border: none; height: 1px;"/>
@@ -448,6 +452,11 @@ class ReportesView(QWidget):
             self.tabla_caja.setItem(row, 4, QTableWidgetItem(f"${c['monto_inicial']:.2f}"))
             monto_cierre = f"${c['monto_cierre']:.2f}" if c['monto_cierre'] is not None else "-"
             self.tabla_caja.setItem(row, 5, QTableWidgetItem(monto_cierre))
+            self.tabla_caja.setItem(row, 6, QTableWidgetItem(c['responsable_nombre'] or "Sin registrar (histórico)"))
+            self.tabla_caja.setItem(row, 7, QTableWidgetItem(c['cierre_usuario_nombre'] or "-"))
+            for column, key in ((8, 'monto_esperado'), (9, 'diferencia')):
+                valor = f"${c[key]:.2f}" if c[key] is not None else "-"
+                self.tabla_caja.setItem(row, column, QTableWidgetItem(valor))
 
     def cargar_alertas(self):
         data = ReportesManager.get_alertas_reposicion()

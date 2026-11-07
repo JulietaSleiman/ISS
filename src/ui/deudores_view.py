@@ -143,7 +143,11 @@ class DeudoresView(QWidget):
             
         saldo = CtaCteManager.get_saldo(cliente_id)
             
-        sesion = CajaManager.obtener_sesion_activa()
+        try:
+            sesion = CajaManager.obtener_sesion_activa()
+        except Exception as exc:
+            QMessageBox.warning(self, "Revisar caja", str(exc))
+            return
         if not sesion:
             QMessageBox.critical(self, "Caja Cerrada", "Debe abrir la caja diaria para poder cobrar y que el dinero ingrese a la caja.")
             return
