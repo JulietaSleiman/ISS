@@ -71,6 +71,7 @@ class UpdaterRegressions(unittest.TestCase):
                 self.assertNotIn('-Recurse', script)
                 launch.assert_called_once()
                 self.assertIn('Hidden', launch.call_args.args[0])
+                self.assertEqual(launch.call_args.kwargs['env']['PYINSTALLER_RESET_ENVIRONMENT'], '1')
             if os.name == 'nt':
                 # Parse the generated helper without executing its update/delete commands.
                 result = subprocess.run([

@@ -211,6 +211,7 @@ class EntitySyncStore:
             'fecha': sale['sold_at'], 'estado': sale['estado'], 'cliente_nombre': sale['cliente_nombre'],
             'metodo_pago': sale['metodo_pago'], 'caja_sync_id': sale['caja_sync_id'],
             'vendedor_id': sale['vendedor_id'], 'historica': historical, 'detalles': snapshot_details,
+            'responsable_nombre': sale['vendedor_nombre'],
         }
         for field in ('subtotal', 'descuento_total', 'total'):
             payload[field] = EntitySyncStore._number(sale[field], field)

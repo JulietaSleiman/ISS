@@ -282,7 +282,7 @@ def init_db():
         ('productos', {'sync_id': 'TEXT', 'sync_revision': 'INTEGER NOT NULL DEFAULT 0',
                        'catalog_revision': 'INTEGER NOT NULL DEFAULT 0'}),
         ('ventas', {'sync_id': 'TEXT', 'sync_revision': 'INTEGER NOT NULL DEFAULT 0',
-                    'vendedor_id': 'TEXT'}),
+                    'vendedor_id': 'TEXT', 'vendedor_nombre': 'TEXT'}),
         ('promociones', {'sync_id': 'TEXT', 'sync_revision': 'INTEGER NOT NULL DEFAULT 1',
                          'sync_pending': 'INTEGER NOT NULL DEFAULT 1'}),
     ):

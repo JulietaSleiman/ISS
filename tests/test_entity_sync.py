@@ -156,6 +156,7 @@ class EntitySyncTests(EntitySyncCase):
         sale = self.events('VENTA')[0]['payload']
         self.assertFalse(sale['historica'])
         self.assertEqual(sale['vendedor_id'], self.user.user_id)
+        self.assertEqual(sale['responsable_nombre'], self.user.username)
         self.assertEqual(sale['local_id'], result['venta_id'])
         self.assertTrue(sale['fecha'].endswith('Z'))
         self.assertEqual(sale['total'], 160)

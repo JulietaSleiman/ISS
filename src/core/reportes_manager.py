@@ -12,9 +12,11 @@ class ReportesManager:
         cursor = conn.cursor()
         
         query = """
-            SELECT v.id, v.fecha, v.total, v.metodo_pago, c.nombre as cliente
+            SELECT v.id, v.fecha, v.total, v.metodo_pago, c.nombre as cliente,
+                   COALESCE(v.vendedor_nombre, cs.responsable_nombre) AS responsable_nombre
             FROM ventas v
             LEFT JOIN clientes c ON v.cliente_id = c.id
+            LEFT JOIN caja_sesiones cs ON v.caja_sesion_id = cs.id AND v.vendedor_id = cs.responsable_id
             WHERE v.estado != 'CANCELADA' AND datetime(v.fecha, 'localtime') BETWEEN ? AND ?
         """
         params = [desde, hasta]

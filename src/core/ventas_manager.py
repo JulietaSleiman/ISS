@@ -83,9 +83,9 @@ class VentasManager:
 
             # 1. Crear registro de venta
             cursor.execute("""
-            INSERT INTO ventas (cliente_id, caja_sesion_id, subtotal, descuento_total, total, metodo_pago, vendedor_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (cliente_id, sesion_caja['id'], subtotal, descuento_total, total, metodo_pago, user.user_id))
+            INSERT INTO ventas (cliente_id, caja_sesion_id, subtotal, descuento_total, total, metodo_pago, vendedor_id, vendedor_nombre)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (cliente_id, sesion_caja['id'], subtotal, descuento_total, total, metodo_pago, user.user_id, user.username))
             
             venta_id = cursor.lastrowid
 

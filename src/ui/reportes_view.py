@@ -235,8 +235,8 @@ class ReportesView(QWidget):
         layout.addLayout(resumen_layout)
         
         # Grilla
-        self.tabla_ventas = QTableWidget(0, 5)
-        self.tabla_ventas.setHorizontalHeaderLabels(["Factura Nº", "Fecha y Hora", "Cliente", "Medio Pago", "Total"])
+        self.tabla_ventas = QTableWidget(0, 6)
+        self.tabla_ventas.setHorizontalHeaderLabels(["Factura Nº", "Fecha y Hora", "Cliente", "Medio Pago", "Total", "Responsable"])
         self.tabla_ventas.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         self.tabla_ventas.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.tabla_ventas.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
@@ -404,6 +404,7 @@ class ReportesView(QWidget):
             self.tabla_ventas.setItem(row, 2, QTableWidgetItem(v['cliente'] or "Consumidor Final"))
             self.tabla_ventas.setItem(row, 3, QTableWidgetItem(v['metodo_pago']))
             self.tabla_ventas.setItem(row, 4, QTableWidgetItem(f"${v['total']:.2f}"))
+            self.tabla_ventas.setItem(row, 5, QTableWidgetItem(v['responsable_nombre'] or "Sin registrar"))
 
     def cargar_productos(self, desde, hasta):
         data = ReportesManager.get_productos_mas_vendidos(desde, hasta)

@@ -6,6 +6,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont, QShortcut, QKeySequence
 
 from src.core.productos_manager import ProductosManager
+from src.core.auth_manager import AuthManager
 from src.core.ventas_manager import VentasManager
 from src.core.ventas_manager import VentasManager
 from src.core.caja_manager import CajaManager
@@ -181,7 +182,8 @@ class POSView(QWidget):
 
         # Vendedor e Info adicional
         info_layout = QVBoxLayout()
-        info_layout.addWidget(QLabel("Vendedor: 01 - Principal"))
+        user = AuthManager.require_user()
+        info_layout.addWidget(QLabel(f"Vendedor: {user.username}"))
         lbl_shortcuts = QLabel("[F5] Cobrar   |   [F12] Cancelar Venta   |   [Supr] Eliminar Fila")
         lbl_shortcuts.setStyleSheet("color: #64748B;")
         lbl_shortcuts.setWordWrap(True)

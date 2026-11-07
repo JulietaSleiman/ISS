@@ -8,7 +8,7 @@ from PyQt6.QtCore import QThread, pyqtSignal, Qt
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QProgressBar, QPushButton, QHBoxLayout, QMessageBox, QApplication
 
-CURRENT_VERSION = "1.1.3"
+CURRENT_VERSION = "1.1.4"
 GITHUB_REPO = "JulietaSleiman/ISS"  # Releases oficiales de este sistema de ventas
 GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 
@@ -373,7 +373,8 @@ try {{
                 "-WindowStyle", "Hidden",
                 "-File", updater_ps1
             ],
-            creationflags=CREATE_NO_WINDOW
+            creationflags=CREATE_NO_WINDOW,
+            env={**os.environ, "PYINSTALLER_RESET_ENVIRONMENT": "1"},
         )
     except Exception as e:
         QMessageBox.warning(None, "Error de actualización", f"No se pudo iniciar la actualización:\n{e}")
