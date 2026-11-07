@@ -28,7 +28,8 @@ class UpdaterRegressions(unittest.TestCase):
         received, errors = [], []
         checker.update_available.connect(received.append)
         checker.error_occurred.connect(errors.append)
-        with patch.object(sys, 'frozen', True, create=True), \
+        with patch.object(updater, 'CURRENT_VERSION', '1.1.0'), \
+                patch.object(sys, 'frozen', True, create=True), \
                 patch.object(sys, 'executable', str(Path('SistemaIvanLlorens.exe').resolve())), \
                 patch.object(updater.urllib.request, 'urlopen', return_value=response) as request:
             checker.run()

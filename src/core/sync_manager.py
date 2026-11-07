@@ -16,11 +16,8 @@ class SyncManager:
     COMMAND_BATCH = 50
 
     @staticmethod
-    def _pull_initial_catalog(user, token, result):
+    def _pull_catalog(user, token, result):
         from src.core.entity_sync_store import EntitySyncStore
-        with closing(get_connection()) as conn:
-            if conn.execute('SELECT 1 FROM productos LIMIT 1').fetchone():
-                return
         products = []
         last_id = None
         while True:
@@ -42,7 +39,11 @@ class SyncManager:
                 last_id = row['id']
                 products.append(payload)
         if products:
-            EntitySyncStore.import_initial_catalog(user, products)
+            result['catalog_changed'], conflicts = EntitySyncStore.merge_catalog(user, products)
+            if conflicts:
+                SyncManager._error(result, ValueError(
+                    'Hay códigos de barras en conflicto: ' + ', '.join(sorted(conflicts))))
+        result['catalog_checked'] = True
 
     @staticmethod
     def _exists(conn, table):
@@ -196,7 +197,7 @@ class SyncManager:
                 SyncManager._error(result,exc)
             token = AuthManager.ensure_auth_token()
             # Fallar en una etapa nueva no suprime los cierres si falta aplicar 004.
-            for stage in (SyncManager._pull_initial_catalog, SyncManager._pull_commands, SyncManager._upload_entities,
+            for stage in (SyncManager._pull_catalog, SyncManager._pull_commands, SyncManager._upload_entities,
                           SyncManager._ack_commands, SyncManager._upload_closes):
                 try:
                     stage(user,token,result)

@@ -8,7 +8,7 @@ from PyQt6.QtCore import QThread, pyqtSignal, Qt
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QProgressBar, QPushButton, QHBoxLayout, QMessageBox, QApplication
 
-CURRENT_VERSION = "1.1.1"
+CURRENT_VERSION = "1.1.2"
 GITHUB_REPO = "JulietaSleiman/ISS"  # Releases oficiales de este sistema de ventas
 GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 
@@ -65,7 +65,7 @@ class UpdateCheckerThread(QThread):
                                 "size": exe_size
                             })
                         else:
-                            self.no_update.emit()
+                            self.error_occurred.emit("La versión nueva todavía no tiene un ejecutable disponible.")
                     else:
                         self.no_update.emit()
                 else:

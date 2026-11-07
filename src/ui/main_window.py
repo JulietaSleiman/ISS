@@ -44,6 +44,7 @@ class MainWindow(QMainWindow):
         self.init_ui()
         self.sync_controller = SyncController(self)
         self.sync_controller.status_changed.connect(self.lbl_sync.setText)
+        self.sync_controller.catalog_changed.connect(self._refresh_catalog)
         self.sync_controller.idle.connect(self._finish_requested_close)
         self.sync_controller.idle.connect(self._check_session)
         self.caja_view.caja_cerrada.connect(self.sync_controller.start)
@@ -54,11 +55,28 @@ class MainWindow(QMainWindow):
         QTimer.singleShot(0, self.sync_controller.start)
         self.verificar_actualizaciones()
 
+    def _refresh_catalog(self):
+        self.productos_view.cargar_combos()
+        self.productos_view.cargar_grilla(self.productos_view.txt_buscar.text())
+
     def verificar_actualizaciones(self):
-        self.updater_thread = UpdateCheckerThread()
+        self.update_retry = QTimer(self)
+        self.update_retry.setSingleShot(True)
+        self.update_retry.setInterval(60000)
+        self.update_retry.timeout.connect(self._start_update_check)
+        self.updater_thread = UpdateCheckerThread(self)
         self.updater_thread.update_available.connect(self.mostrar_dialogo_actualizacion)
+        self.updater_thread.error_occurred.connect(self._schedule_update_retry)
         self.updater_thread.finished.connect(self._finish_requested_close)
-        self.updater_thread.start()
+        self._start_update_check()
+
+    def _start_update_check(self):
+        if not self._close_requested and not self.updater_thread.isRunning():
+            self.updater_thread.start()
+
+    def _schedule_update_retry(self, _error):
+        if not self._close_requested:
+            self.update_retry.start()
 
     def mostrar_dialogo_actualizacion(self, release_info):
         if self._close_requested:

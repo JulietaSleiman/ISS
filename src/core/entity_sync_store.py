@@ -12,19 +12,35 @@ class EntitySyncStore:
     INITIAL_BATCH_SIZE = 200
 
     @staticmethod
-    def import_initial_catalog(user, products):
+    def merge_catalog(user, products):
         fields = ('codigo_barras', 'codigo_fabrica', 'nombre', 'ubicacion', 'observaciones')
         numbers = ('costo_lista', 'flete', 'costo_final', 'utilidad_porcentaje', 'precio_contado',
                    'precio_tarjeta', 'stock_actual', 'stock_minimo', 'stock_maximo', 'unidades_bulto')
         columns = (*fields, *numbers, 'activo', 'categoria_id', 'proveedor_id',
                    'sync_id', 'sync_revision', 'catalog_revision')
         placeholders = ','.join('?' for _ in columns)
+        assignments = ','.join(f'{column}=?' for column in columns)
+        conflicts = set()
+        changed = False
         with closing(get_connection()) as conn, conn:
             conn.execute('BEGIN IMMEDIATE')
             EntitySyncStore._bind(conn, user)
-            if conn.execute('SELECT 1 FROM productos LIMIT 1').fetchone():
-                return
             for product in products:
+                local = conn.execute('SELECT id,sync_revision FROM productos WHERE sync_id=?',
+                                     (product['id'],)).fetchone()
+                if local and (local['sync_revision'] >= product['revision'] or conn.execute(
+                    "SELECT 1 FROM sync_entidades WHERE sucursal_id=? AND tipo='PRODUCTO' "
+                    "AND entidad_id=? AND estado='PENDIENTE'",
+                    (user.branch_id, product['id']),
+                ).fetchone()):
+                    continue
+                barcode = product['codigo_barras']
+                if barcode is not None and conn.execute(
+                    'SELECT 1 FROM productos WHERE codigo_barras=? AND id<>?',
+                    (barcode, local['id'] if local else -1),
+                ).fetchone():
+                    conflicts.add(barcode or '(vacío)')
+                    continue
                 category_id = None
                 supplier_id = None
                 category = product.get('categoria_nombre')
@@ -41,7 +57,12 @@ class EntitySyncStore:
                           *(EntitySyncStore._number(product[field], field) for field in numbers),
                           product['activo'], category_id, supplier_id, product['id'],
                           product['revision'], product['catalog_revision'])
-                conn.execute(f"INSERT INTO productos ({','.join(columns)}) VALUES ({placeholders})", values)
+                if local:
+                    conn.execute(f'UPDATE productos SET {assignments} WHERE id=?', (*values, local['id']))
+                else:
+                    conn.execute(f"INSERT INTO productos ({','.join(columns)}) VALUES ({placeholders})", values)
+                changed = True
+        return changed, conflicts
 
     @staticmethod
     def _actor(user):

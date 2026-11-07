@@ -18,6 +18,7 @@ class SyncWorker(QThread):
 
 class SyncController(QObject):
     status_changed = pyqtSignal(str)
+    catalog_changed = pyqtSignal()
     idle = pyqtSignal()
 
     def __init__(self, parent=None):
@@ -25,7 +26,8 @@ class SyncController(QObject):
         self.worker = None
         self.stopped = False
         self.timer = QTimer(self)
-        self.timer.setInterval(60000)
+        self.timer.setSingleShot(True)
+        self.timer.setInterval(5000)
         self.timer.timeout.connect(self.start)
         self.timer.start()
 
@@ -35,6 +37,7 @@ class SyncController(QObject):
     def start(self):
         if self.stopped or self.worker is not None:
             return
+        self.timer.stop()
         self.status_changed.emit("Comprobando operaciones pendientes…")
         self.worker = SyncWorker(self)
         self.worker.finished.connect(self.finished)
@@ -54,9 +57,11 @@ class SyncController(QObject):
         worker.deleteLater()
         self.worker = None
         self.idle.emit()
-        if (not self.stopped and result.get('has_more_own') and result.get('sent', 0) > 0
-                and not result.get('error')):
-            QTimer.singleShot(5000, self.start)
+        if self.stopped:
+            return
+        if result.get('catalog_changed'):
+            self.catalog_changed.emit()
+        self.timer.start(5000 if result.get('catalog_checked') else 15000)
 
     def stop(self):
         self.stopped = True
