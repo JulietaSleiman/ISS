@@ -52,7 +52,7 @@ class POSView(QWidget):
     def init_ui(self):
         layout_principal = QVBoxLayout()
         layout_principal.setContentsMargins(20, 20, 20, 20)
-        layout_principal.setSpacing(15)
+        layout_principal.setSpacing(8)
         self.setLayout(layout_principal)
 
         # --- 1. CABECERA: FACTURACIÓN Y CLIENTE ---
@@ -172,7 +172,7 @@ class POSView(QWidget):
         self.tabla_carrito.verticalHeader().setDefaultSectionSize(40)
         self.tabla_carrito.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.tabla_carrito.itemChanged.connect(self.al_cambiar_celda)
-        layout_principal.addWidget(self.tabla_carrito)
+        layout_principal.addWidget(self.tabla_carrito, 1)
 
         # --- 4. PANEL INFERIOR: TOTALES Y ACCIONES ---
         bottom_frame = self.crear_seccion_frame()
@@ -184,6 +184,7 @@ class POSView(QWidget):
         info_layout.addWidget(QLabel("Vendedor: 01 - Principal"))
         lbl_shortcuts = QLabel("[F5] Cobrar   |   [F12] Cancelar Venta   |   [Supr] Eliminar Fila")
         lbl_shortcuts.setStyleSheet("color: #64748B;")
+        lbl_shortcuts.setWordWrap(True)
         info_layout.addWidget(lbl_shortcuts)
         bottom_layout.addLayout(info_layout)
 
@@ -234,7 +235,7 @@ class POSView(QWidget):
         self.lbl_descuento.setStyleSheet("color: #EF4444;")
         
         self.lbl_total = QLabel("$0.00")
-        self.lbl_total.setFont(QFont("Segoe UI", 48, QFont.Weight.Bold))
+        self.lbl_total.setFont(QFont("Segoe UI", 32, QFont.Weight.Bold))
         self.lbl_total.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop)
         self.lbl_total.setStyleSheet("color: #0284C7;")
         

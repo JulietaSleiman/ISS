@@ -12,6 +12,38 @@ class EntitySyncStore:
     INITIAL_BATCH_SIZE = 200
 
     @staticmethod
+    def import_initial_catalog(user, products):
+        fields = ('codigo_barras', 'codigo_fabrica', 'nombre', 'ubicacion', 'observaciones')
+        numbers = ('costo_lista', 'flete', 'costo_final', 'utilidad_porcentaje', 'precio_contado',
+                   'precio_tarjeta', 'stock_actual', 'stock_minimo', 'stock_maximo', 'unidades_bulto')
+        columns = (*fields, *numbers, 'activo', 'categoria_id', 'proveedor_id',
+                   'sync_id', 'sync_revision', 'catalog_revision')
+        placeholders = ','.join('?' for _ in columns)
+        with closing(get_connection()) as conn, conn:
+            conn.execute('BEGIN IMMEDIATE')
+            EntitySyncStore._bind(conn, user)
+            if conn.execute('SELECT 1 FROM productos LIMIT 1').fetchone():
+                return
+            for product in products:
+                category_id = None
+                supplier_id = None
+                category = product.get('categoria_nombre')
+                if category:
+                    conn.execute('INSERT OR IGNORE INTO categorias(nombre) VALUES (?)', (category,))
+                    category_id = conn.execute('SELECT id FROM categorias WHERE nombre=?', (category,)).fetchone()['id']
+                supplier = product.get('proveedor_nombre')
+                if supplier:
+                    existing = conn.execute('SELECT id FROM proveedores WHERE nombre=? ORDER BY id LIMIT 1',
+                                            (supplier,)).fetchone()
+                    supplier_id = existing['id'] if existing else conn.execute(
+                        'INSERT INTO proveedores(nombre) VALUES (?)', (supplier,)).lastrowid
+                values = (*(product[field] for field in fields),
+                          *(EntitySyncStore._number(product[field], field) for field in numbers),
+                          product['activo'], category_id, supplier_id, product['id'],
+                          product['revision'], product['catalog_revision'])
+                conn.execute(f"INSERT INTO productos ({','.join(columns)}) VALUES ({placeholders})", values)
+
+    @staticmethod
     def _actor(user):
         actual = AuthManager.require_user()
         if (actual.user_id, actual.branch_id) != (user.user_id, user.branch_id):

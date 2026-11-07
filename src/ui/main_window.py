@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QPushButton, QStackedWidget, QLabel, QMessageBox
+from PyQt6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QPushButton, QStackedWidget, QLabel, QMessageBox, QScrollArea
 from PyQt6.QtCore import Qt, QTimer
 from src.ui.pos_view import POSView
 from src.ui.productos_view import ProductosView
@@ -73,7 +73,6 @@ class MainWindow(QMainWindow):
 
         # --- Menú Lateral ---
         sidebar = QWidget()
-        sidebar.setFixedWidth(260)
         sidebar.setStyleSheet("background-color: #FFFFFF; color: #0F172A; border-right: 1px solid #E2E8F0;")
         sidebar_layout = QVBoxLayout(sidebar)
         sidebar_layout.setContentsMargins(15, 15, 15, 15)
@@ -97,10 +96,10 @@ class MainWindow(QMainWindow):
             
         pixmap = QPixmap(logo_path)
         if not pixmap.isNull():
-            lbl_brand.setPixmap(pixmap.scaled(220, 110, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+            lbl_brand.setPixmap(pixmap.scaled(200, 84, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
             lbl_brand.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            lbl_brand.setMinimumHeight(100)
-            lbl_brand.setStyleSheet("margin-bottom: 10px; background: transparent;")
+            lbl_brand.setFixedHeight(84)
+            lbl_brand.setStyleSheet("border: none; background: transparent;")
         else:
             lbl_brand.setText("IVAN LLORENS")
             lbl_brand.setStyleSheet("font-size: 22px; font-weight: 800; color: #0284C7; margin-bottom: 10px; border: none;")
@@ -131,22 +130,33 @@ class MainWindow(QMainWindow):
         self.btn_clientes = self.crear_boton_menu("Clientes")
         self.btn_deudores = self.crear_boton_menu("Cuentas Ctes. (Fiado)")
         self.btn_caja = self.crear_boton_menu("Caja Diaria")
-        self.btn_reportes = self.crear_boton_menu("Reportes")
+        self.btn_reportes = self.crear_boton_menu("Reportes") if self.user.role == 'admin' else None
         self.btn_central = None
         if self.user.role == 'admin':
             self.btn_central = self.crear_boton_menu("Administración central")
             sidebar_layout.addWidget(self.btn_central)
 
-        sidebar_layout.addWidget(self.btn_pos)
-        sidebar_layout.addWidget(self.btn_productos)
-        sidebar_layout.addWidget(self.btn_promociones)
-        sidebar_layout.addWidget(self.btn_categorias)
-        sidebar_layout.addWidget(self.btn_proveedores)
-        sidebar_layout.addWidget(self.btn_deudas_proveedores)
-        sidebar_layout.addWidget(self.btn_clientes)
-        sidebar_layout.addWidget(self.btn_deudores)
-        sidebar_layout.addWidget(self.btn_caja)
-        sidebar_layout.addWidget(self.btn_reportes)
+        operational_buttons = (
+            self.btn_pos, self.btn_productos, self.btn_promociones,
+            self.btn_categorias, self.btn_proveedores, self.btn_deudas_proveedores,
+            self.btn_clientes, self.btn_deudores, self.btn_caja,
+        )
+        if self.btn_reportes is not None:
+            sidebar_layout.addWidget(self.btn_reportes)
+            operations_toggle = QPushButton("▸ Operaciones")
+            operations_toggle.setCheckable(True)
+            sidebar_layout.addWidget(operations_toggle)
+
+            def show_operations(expanded):
+                operations_toggle.setText("▾ Operaciones" if expanded else "▸ Operaciones")
+                for button in operational_buttons:
+                    button.setVisible(expanded)
+
+            operations_toggle.toggled.connect(show_operations)
+
+        for button in operational_buttons:
+            sidebar_layout.addWidget(button)
+            button.setVisible(self.user.role != 'admin')
         sidebar_layout.addStretch()
         self.btn_logout = QPushButton("Cerrar sesión")
         self.btn_logout.clicked.connect(self.cerrar_sesion)
@@ -165,7 +175,7 @@ class MainWindow(QMainWindow):
         self.clientes_view = ClientesView()
         self.deudores_view = DeudoresView()
         self.caja_view = CajaView()
-        self.reportes_view = ReportesView()
+        self.reportes_view = ReportesView() if self.btn_reportes is not None else None
         self.central_view = CentralView() if self.user.role == 'admin' else None
         
         # Agregar vistas al stack
@@ -178,7 +188,8 @@ class MainWindow(QMainWindow):
         self.stacked_widget.addWidget(self.clientes_view)
         self.stacked_widget.addWidget(self.deudores_view)
         self.stacked_widget.addWidget(self.caja_view)
-        self.stacked_widget.addWidget(self.reportes_view)
+        if self.reportes_view is not None:
+            self.stacked_widget.addWidget(self.reportes_view)
         if self.central_view is not None:
             self.stacked_widget.addWidget(self.central_view)
             self.btn_central.clicked.connect(self.mostrar_administracion_central)
@@ -201,11 +212,23 @@ class MainWindow(QMainWindow):
         self.btn_clientes.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.clientes_view))
         self.btn_deudores.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.deudores_view))
         self.btn_caja.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.caja_view))
-        self.btn_reportes.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.reportes_view))
+        if self.btn_reportes is not None:
+            self.btn_reportes.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.reportes_view))
 
         # Agregar todo al layout principal
-        main_layout.addWidget(sidebar)
-        main_layout.addWidget(self.stacked_widget)
+        sidebar_scroll = QScrollArea()
+        sidebar_scroll.setWidgetResizable(True)
+        sidebar_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        sidebar_scroll.setStyleSheet("QScrollArea { border: none; }")
+        sidebar_scroll.setFixedWidth(260)
+        sidebar_scroll.setWidget(sidebar)
+        main_layout.addWidget(sidebar_scroll)
+
+        content_scroll = QScrollArea()
+        content_scroll.setWidgetResizable(True)
+        content_scroll.setStyleSheet("QScrollArea { border: none; }")
+        content_scroll.setWidget(self.stacked_widget)
+        main_layout.addWidget(content_scroll, 1)
 
         
         # Establecer padding 0

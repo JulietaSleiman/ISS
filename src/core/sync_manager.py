@@ -16,6 +16,35 @@ class SyncManager:
     COMMAND_BATCH = 50
 
     @staticmethod
+    def _pull_initial_catalog(user, token, result):
+        from src.core.entity_sync_store import EntitySyncStore
+        with closing(get_connection()) as conn:
+            if conn.execute('SELECT 1 FROM productos LIMIT 1').fetchone():
+                return
+        products = []
+        last_id = None
+        while True:
+            filters = {'sucursal_id': f'eq.{user.branch_id}', 'select': 'id,sucursal_id,payload',
+                       'order': 'id.asc', 'limit': SyncManager.ENTITY_BATCH}
+            if last_id:
+                filters['id'] = f'gt.{last_id}'
+            page = supabase_client.request('GET', '/rest/v1/productos_sucursal?' + urlencode(filters),
+                                           access_token=token)
+            if not isinstance(page, list):
+                raise ValueError('No se recibió un catálogo válido.')
+            if not page:
+                break
+            for row in page:
+                payload = row['payload']
+                if (row['sucursal_id'] != user.branch_id or payload['sucursal_id'] != user.branch_id
+                        or payload['id'] != row['id'] or (last_id and row['id'] <= last_id)):
+                    raise ValueError('El catálogo recibido no corresponde a esta sucursal o está desordenado.')
+                last_id = row['id']
+                products.append(payload)
+        if products:
+            EntitySyncStore.import_initial_catalog(user, products)
+
+    @staticmethod
     def _exists(conn, table):
         return conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,)).fetchone() is not None
 
@@ -167,7 +196,7 @@ class SyncManager:
                 SyncManager._error(result,exc)
             token = AuthManager.ensure_auth_token()
             # Fallar en una etapa nueva no suprime los cierres si falta aplicar 004.
-            for stage in (SyncManager._pull_commands, SyncManager._upload_entities,
+            for stage in (SyncManager._pull_initial_catalog, SyncManager._pull_commands, SyncManager._upload_entities,
                           SyncManager._ack_commands, SyncManager._upload_closes):
                 try:
                     stage(user,token,result)

@@ -1,7 +1,7 @@
 """Acceso de operadores, con verificación de red fuera del hilo de interfaz."""
 from PyQt6.QtCore import QThread
 from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QDialogButtonBox,
+    QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QDialogButtonBox, QToolButton,
 )
 
 from src.core.auth_manager import AuthManager
@@ -52,13 +52,19 @@ class LoginDialog(QDialog):
         )
         instruction.setWordWrap(True)
         layout.addWidget(instruction)
-        layout.addWidget(QLabel("Código de sucursal"))
+        self.branch_toggle = QToolButton()
+        self.branch_toggle.setText("Código de sucursal")
+        self.branch_toggle.setCheckable(True)
+        self.branch_toggle.setChecked(self.setup_mode)
+        layout.addWidget(self.branch_toggle)
         self.branch_code = QLineEdit()
         self.branch_code.setPlaceholderText("estacion-de-simoca")
         self.branch_code.setReadOnly(not self.setup_mode)
         if self.installation is not None:
             self.branch_code.setText(self.installation['branch_code'])
         layout.addWidget(self.branch_code)
+        self.branch_code.setVisible(self.setup_mode)
+        self.branch_toggle.toggled.connect(self.branch_code.setVisible)
         layout.addWidget(QLabel("Usuario"))
         self.username = QLineEdit("caja1")
         layout.addWidget(self.username)
@@ -93,6 +99,7 @@ class LoginDialog(QDialog):
         code = self.branch_code.text().strip()
         if self.setup_mode and not code:
             self.message.setText("Complete el código de sucursal asignado por administración.")
+            self.branch_toggle.setChecked(True)
             self.branch_code.setFocus()
             return
         self.login_button.setEnabled(False)
