@@ -49,7 +49,7 @@ class PromocionesManager:
         conn = get_connection()
         cursor = conn.cursor()
         try:
-            cursor.execute("UPDATE promociones SET activa = 0 WHERE id = ?", (promocion_id,))
+            cursor.execute("UPDATE promociones SET activa = 0, sync_revision = sync_revision + 1, sync_pending = 1 WHERE id = ?", (promocion_id,))
             conn.commit()
             return True
         except Exception as e:
@@ -63,7 +63,7 @@ class PromocionesManager:
         conn = get_connection()
         cursor = conn.cursor()
         try:
-            cursor.execute("UPDATE promociones SET nombre = ?, precio_fijo = ? WHERE id = ?", 
+            cursor.execute("UPDATE promociones SET nombre = ?, precio_fijo = ?, sync_revision = sync_revision + 1, sync_pending = 1 WHERE id = ?",
                            (nombre, precio_fijo, promocion_id))
             
             cursor.execute("DELETE FROM promocion_detalles WHERE promocion_id = ?", (promocion_id,))

@@ -19,6 +19,7 @@ class SyncWorker(QThread):
 class SyncController(QObject):
     status_changed = pyqtSignal(str)
     catalog_changed = pyqtSignal()
+    promotions_changed = pyqtSignal()
     idle = pyqtSignal()
 
     def __init__(self, parent=None):
@@ -61,6 +62,8 @@ class SyncController(QObject):
             return
         if result.get('catalog_changed'):
             self.catalog_changed.emit()
+        if result.get('promotions_changed'):
+            self.promotions_changed.emit()
         self.timer.start(5000 if result.get('catalog_checked') else 15000)
 
     def stop(self):

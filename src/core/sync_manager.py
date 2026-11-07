@@ -196,9 +196,10 @@ class SyncManager:
                 # Un registro antiguo inválido no impide enviar cierres ya válidos.
                 SyncManager._error(result,exc)
             token = AuthManager.ensure_auth_token()
+            from src.core.promotion_sync import sync_promotions
             # Fallar en una etapa nueva no suprime los cierres si falta aplicar 004.
             for stage in (SyncManager._pull_catalog, SyncManager._pull_commands, SyncManager._upload_entities,
-                          SyncManager._ack_commands, SyncManager._upload_closes):
+                          SyncManager._ack_commands, SyncManager._upload_closes, sync_promotions):
                 try:
                     stage(user,token,result)
                 except Exception as exc:

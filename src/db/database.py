@@ -283,6 +283,8 @@ def init_db():
                        'catalog_revision': 'INTEGER NOT NULL DEFAULT 0'}),
         ('ventas', {'sync_id': 'TEXT', 'sync_revision': 'INTEGER NOT NULL DEFAULT 0',
                     'vendedor_id': 'TEXT'}),
+        ('promociones', {'sync_id': 'TEXT', 'sync_revision': 'INTEGER NOT NULL DEFAULT 1',
+                         'sync_pending': 'INTEGER NOT NULL DEFAULT 1'}),
     ):
         cursor.execute(f"PRAGMA table_info({tabla})")
         existentes = {col['name'] for col in cursor.fetchall()}

@@ -45,6 +45,7 @@ class MainWindow(QMainWindow):
         self.sync_controller = SyncController(self)
         self.sync_controller.status_changed.connect(self.lbl_sync.setText)
         self.sync_controller.catalog_changed.connect(self._refresh_catalog)
+        self.sync_controller.promotions_changed.connect(self.promociones_view.cargar_grilla)
         self.sync_controller.idle.connect(self._finish_requested_close)
         self.sync_controller.idle.connect(self._check_session)
         self.caja_view.caja_cerrada.connect(self.sync_controller.start)

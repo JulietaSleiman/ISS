@@ -43,6 +43,26 @@ class EntitySyncCase(unittest.TestCase):
             with conn:
                 return [dict(row) for row in conn.execute(query, params).fetchall()]
 
+    def test_received_promotion_waits_for_product_and_uses_its_local_id(self):
+        from src.core.promotion_sync import apply_promotion
+        from src.core.promociones_manager import PromocionesManager
+
+        product_identity = '11111111-2222-4333-8444-555555555555'
+        row = {'id': '11111111-2222-4333-8444-666666666666', 'revision': 1, 'payload': {
+            'nombre': 'Combo', 'precio_fijo': 50, 'activa': True,
+            'detalles': [{'producto': product_identity, 'cantidad_requerida': 2}],
+        }}
+        self.assertFalse(apply_promotion(self.user, row))
+        self.product(codigo_barras='111')
+        self.product(codigo_barras='222')
+        product_id = self.sql("SELECT id FROM productos WHERE codigo_barras='222'")[0]['id']
+        self.sql('UPDATE productos SET sync_id=? WHERE id=?', (product_identity, product_id))
+        self.assertTrue(apply_promotion(self.user, row))
+        self.assertFalse(apply_promotion(self.user, row))
+        self.assertEqual(PromocionesManager.get_all()[0]['detalles'], [
+            {'producto_id': product_id, 'cantidad_requerida': 2},
+        ])
+
     def product(self, **changes):
         values = dict(codigo_barras='123', nombre='Producto', costo_lista=10, flete=0,
             utilidad_porcentaje=100, precio_contado=20, precio_tarjeta=25,
