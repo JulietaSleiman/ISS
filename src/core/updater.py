@@ -10,7 +10,7 @@ from PyQt6.QtCore import QThread, pyqtSignal, Qt
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QProgressBar, QPushButton, QHBoxLayout, QMessageBox, QApplication
 
-CURRENT_VERSION = "1.1.8"
+CURRENT_VERSION = "1.1.9"
 GITHUB_REPO = "JulietaSleiman/ISS"  # Releases oficiales de este sistema de ventas
 GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 
@@ -348,6 +348,14 @@ if ($replaced) {{
     Remove-Item -LiteralPath $newExe -Force -ErrorAction SilentlyContinue
 }} else {{
     Log-Msg "No se pudo actualizar. Se conserva la version anterior y la descarga."
+    if (-not (Test-Path -LiteralPath $currentExe) -and (Test-Path -LiteralPath $backupExe)) {{
+        try {{
+            [System.IO.File]::Copy($backupExe, $currentExe, $false)
+            Log-Msg "Se recupero el ejecutable anterior desde el respaldo."
+        }} catch {{
+            Log-Msg ("No se pudo recuperar el ejecutable: " + $_.Exception.Message)
+        }}
+    }}
 }}
 Remove-Item -LiteralPath $stagedExe -Force -ErrorAction SilentlyContinue
 
