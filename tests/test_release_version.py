@@ -28,7 +28,7 @@ class ReleaseVersionTests(unittest.TestCase):
 
     def test_repository_version_matches_prepared_release(self):
         version = read_version(Path(__file__).resolve().parents[1] / 'src/core/updater.py')
-        validate_tag('v1.1.0', version)
+        validate_tag('v1.1.5', version)
 
 
 if __name__ == '__main__':

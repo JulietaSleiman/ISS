@@ -1,8 +1,8 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QComboBox,
-    QTableWidget, QTableWidgetItem, QPushButton, QHeaderView, QMessageBox, QFrame, QGridLayout, QSplitter, QCheckBox
+    QTableWidget, QTableWidgetItem, QPushButton, QHeaderView, QMessageBox, QFrame, QGridLayout, QSplitter, QCheckBox, QDialog
 )
-from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtCore import Qt, QTimer, QEvent
 from PyQt6.QtGui import QFont, QShortcut, QKeySequence
 
 class NumericLineEdit(QLineEdit):
@@ -110,31 +110,31 @@ class ProductosView(QWidget):
         g_frame = self.crear_seccion_frame()
         g_layout = QGridLayout(g_frame)
         
-        g_layout.addWidget(QLabel("Cód. Interno:"), 0, 0)
+        g_layout.addWidget(QLabel("Nombre producto:"), 0, 0)
+        self.txt_descripcion = QLineEdit()
+        g_layout.addWidget(self.txt_descripcion, 0, 1, 1, 6)
+
+        g_layout.addWidget(QLabel("Cód. Interno:"), 1, 0)
         self.txt_codigo_interno = QLineEdit("[ Automático ]")
         self.txt_codigo_interno.setReadOnly(True)
         self.txt_codigo_interno.setStyleSheet("color: #64748B; background-color: transparent; border: none; font-weight: bold;")
-        g_layout.addWidget(self.txt_codigo_interno, 0, 1)
+        g_layout.addWidget(self.txt_codigo_interno, 1, 1)
 
-        g_layout.addWidget(QLabel("Cód. Barras (Opcional):"), 0, 2)
+        g_layout.addWidget(QLabel("Cód. Barras (Opcional):"), 1, 2)
         self.txt_codigo_barras = QLineEdit()
-        g_layout.addWidget(self.txt_codigo_barras, 0, 3)
+        g_layout.addWidget(self.txt_codigo_barras, 1, 3)
 
-        g_layout.addWidget(QLabel("Descripción:"), 0, 4)
-        self.txt_descripcion = QLineEdit()
-        g_layout.addWidget(self.txt_descripcion, 0, 5, 1, 2)
-
-        g_layout.addWidget(QLabel("Cód. Fábrica:"), 1, 0)
+        g_layout.addWidget(QLabel("Cód. Fábrica:"), 2, 0)
         self.txt_codigo_fabrica = QLineEdit()
-        g_layout.addWidget(self.txt_codigo_fabrica, 1, 1)
+        g_layout.addWidget(self.txt_codigo_fabrica, 2, 1)
 
-        g_layout.addWidget(QLabel("Rubro/Categoría:"), 1, 2)
+        g_layout.addWidget(QLabel("Rubro/Categoría:"), 2, 2)
         self.cb_categoria = QComboBox()
-        g_layout.addWidget(self.cb_categoria, 1, 3)
+        g_layout.addWidget(self.cb_categoria, 2, 3)
 
-        g_layout.addWidget(QLabel("Proveedor:"), 1, 4)
+        g_layout.addWidget(QLabel("Proveedor:"), 2, 4)
         self.cb_proveedor = QComboBox()
-        g_layout.addWidget(self.cb_proveedor, 1, 5, 1, 2)
+        g_layout.addWidget(self.cb_proveedor, 2, 5, 1, 2)
 
         form_layout.addWidget(g_frame)
 
@@ -248,8 +248,15 @@ class ProductosView(QWidget):
         search_layout.addWidget(QLabel("Búsqueda Rápida:"))
         self.txt_buscar = QLineEdit()
         self.txt_buscar.setPlaceholderText("Nombre, Código o ID...")
+        self.txt_buscar.installEventFilter(self)
         self.txt_buscar.textChanged.connect(self.filtrar_grilla)
         search_layout.addWidget(self.txt_buscar)
+
+        self.btn_ampliar_tabla = QPushButton("Ampliar tabla (F2)")
+        self.btn_ampliar_tabla.clicked.connect(self.abrir_tabla_ampliada)
+        search_layout.addWidget(self.btn_ampliar_tabla)
+        self.shortcut_buscar = QShortcut(QKeySequence("F2"), self)
+        self.shortcut_buscar.activated.connect(self.abrir_tabla_ampliada)
         
         search_layout.addWidget(QLabel("Rubro:"))
         self.cb_filtro_categoria = QComboBox()
@@ -269,7 +276,7 @@ class ProductosView(QWidget):
         grid_layout.addLayout(search_layout)
 
         self.tabla = QTableWidget(0, 5)
-        self.tabla.setHorizontalHeaderLabels(["Código", "Descripción", "P. Mostrador", "P. Local", "Stock"])
+        self.tabla.setHorizontalHeaderLabels(["Código", "Nombre producto", "P. Mostrador", "P. Local", "Stock"])
         self.tabla.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         self.tabla.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
@@ -277,7 +284,76 @@ class ProductosView(QWidget):
         grid_layout.addWidget(self.tabla)
 
         splitter.addWidget(grid_widget)
+        self.grid_widget = grid_widget
+        self.splitter_productos = splitter
         layout_principal.addWidget(splitter)
+
+    def eventFilter(self, source, event):
+        if (source is getattr(self, 'txt_buscar', None)
+                and event.type() == QEvent.Type.MouseButtonPress
+                and event.button() == Qt.MouseButton.LeftButton
+                and self.btn_ampliar_tabla.isEnabled()):
+            if not getattr(self, '_apertura_tabla_pendiente', False):
+                self._apertura_tabla_pendiente = True
+                QTimer.singleShot(0, self.abrir_tabla_ampliada)
+            return True
+        return super().eventFilter(source, event)
+
+    def abrir_tabla_ampliada(self):
+        self._apertura_tabla_pendiente = False
+        if not self.btn_ampliar_tabla.isEnabled():
+            return
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Buscar y seleccionar producto")
+        dialog.setWindowFlag(Qt.WindowType.WindowMaximizeButtonHint, True)
+        area = self.screen().availableGeometry()
+        dialog.resize(int(area.width() * 0.94), int(area.height() * 0.88))
+        layout = QVBoxLayout(dialog)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.addWidget(QLabel("Busque por nombre, código o ID. Haga doble clic en un producto para editarlo."))
+
+        # Usar la misma tabla conserva filtros, selección y productos eliminados.
+        sizes = self.splitter_productos.sizes()
+        row_height = self.tabla.verticalHeader().defaultSectionSize()
+        self.btn_ampliar_tabla.setEnabled(False)
+        self.btn_ampliar_tabla.hide()
+        layout.addWidget(self.grid_widget)
+        self.tabla.verticalHeader().setDefaultSectionSize(max(38, row_height))
+        buttons = QHBoxLayout()
+        buttons.addStretch()
+        seleccionar = QPushButton("Seleccionar producto")
+        seleccionar.setDefault(True)
+        cerrar = QPushButton("Cerrar")
+        buttons.addWidget(seleccionar)
+        buttons.addWidget(cerrar)
+        layout.addLayout(buttons)
+
+        def seleccionar_actual():
+            row = self.tabla.currentRow()
+            if row < 0:
+                QMessageBox.information(dialog, "Seleccionar producto", "Seleccione un producto de la tabla.")
+                return
+            self.cargar_producto_para_edicion(row, 0)
+            dialog.accept()
+
+        def cerrar_al_seleccionar(row, col):
+            dialog.accept()
+
+        seleccionar.clicked.connect(seleccionar_actual)
+        cerrar.clicked.connect(dialog.reject)
+        self.tabla.cellDoubleClicked.connect(cerrar_al_seleccionar)
+        QTimer.singleShot(0, self.txt_buscar.setFocus)
+        try:
+            dialog.exec()
+        finally:
+            self.tabla.cellDoubleClicked.disconnect(cerrar_al_seleccionar)
+            self.splitter_productos.addWidget(self.grid_widget)
+            self.splitter_productos.setSizes(sizes)
+            self.tabla.verticalHeader().setDefaultSectionSize(row_height)
+            self.btn_ampliar_tabla.setEnabled(True)
+            self.btn_ampliar_tabla.show()
+            dialog.deleteLater()
 
     def calcular_precios_desde_costo(self, text=""):
         try:
@@ -503,7 +579,7 @@ class ProductosView(QWidget):
     def grabar_producto(self):
         try:
             if not self.txt_descripcion.text().strip():
-                QMessageBox.warning(self, "Error", "La descripción es obligatoria.")
+                QMessageBox.warning(self, "Error", "El nombre del producto es obligatorio.")
                 return
 
             cat_data = self.cb_categoria.currentData()
