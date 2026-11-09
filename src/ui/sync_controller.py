@@ -39,7 +39,6 @@ class SyncController(QObject):
         if self.stopped or self.worker is not None:
             return
         self.timer.stop()
-        self.status_changed.emit("Comprobando operaciones pendientes…")
         self.worker = SyncWorker(self)
         self.worker.finished.connect(self.finished)
         self.worker.start()

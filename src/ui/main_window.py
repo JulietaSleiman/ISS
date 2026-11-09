@@ -148,7 +148,7 @@ class MainWindow(QMainWindow):
         self.lbl_user.setWordWrap(True)
         self.lbl_user.setStyleSheet("font-size: 13px; border: none; padding: 6px;")
         sidebar_layout.addWidget(self.lbl_user)
-        self.lbl_sync = QLabel("Operaciones pendientes de comprobar")
+        self.lbl_sync = QLabel()
         self.lbl_sync.setWordWrap(True)
         self.lbl_sync.setStyleSheet("font-size: 11px; color: #64748B; border: none; padding: 6px;")
         sidebar_layout.addWidget(self.lbl_sync)
