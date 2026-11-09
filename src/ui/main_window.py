@@ -67,19 +67,38 @@ class MainWindow(QMainWindow):
         self.update_retry.timeout.connect(self._start_update_check)
         self.updater_thread = UpdateCheckerThread(self)
         self.updater_thread.update_available.connect(self.mostrar_dialogo_actualizacion)
+        self.updater_thread.no_update.connect(self._show_update_check_result)
         self.updater_thread.error_occurred.connect(self._schedule_update_retry)
         self.updater_thread.finished.connect(self._finish_requested_close)
         self._start_update_check()
 
     def _start_update_check(self):
         if not self._close_requested and not self.updater_thread.isRunning():
+            self.update_retry.stop()
+            self.btn_check_updates.setToolTip("Consultando GitHub…")
             self.updater_thread.start()
 
-    def _schedule_update_retry(self, _error):
+    def _check_updates_manually(self):
+        self._manual_update_check = True
+        self._start_update_check()
+
+    def _show_update_check_result(self, error=None):
+        message = (f"No se pudo comprobar la actualización en GitHub.\n{error}"
+                   if error else f"No hay una versión más reciente que la {CURRENT_VERSION}.")
+        self.btn_check_updates.setToolTip(message)
+        manual = getattr(self, '_manual_update_check', False)
+        self._manual_update_check = False
+        if manual and not self._close_requested:
+            QMessageBox.information(self, "Buscar actualizaciones", message)
+
+    def _schedule_update_retry(self, error):
         if not self._close_requested:
             self.update_retry.start()
+            self._show_update_check_result(error)
 
     def mostrar_dialogo_actualizacion(self, release_info):
+        self._manual_update_check = False
+        self.btn_check_updates.setToolTip(f"Versión disponible: {release_info['version']}")
         if self._close_requested:
             return
         dialog = UpdateDialog(release_info, self)
@@ -177,6 +196,9 @@ class MainWindow(QMainWindow):
             sidebar_layout.addWidget(button)
             button.setVisible(self.user.role != 'admin')
         sidebar_layout.addStretch()
+        self.btn_check_updates = QPushButton("Buscar actualizaciones")
+        self.btn_check_updates.clicked.connect(self._check_updates_manually)
+        sidebar_layout.addWidget(self.btn_check_updates)
         self.btn_logout = QPushButton("Cerrar sesión")
         self.btn_logout.clicked.connect(self.cerrar_sesion)
         sidebar_layout.addWidget(self.btn_logout)
