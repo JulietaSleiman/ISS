@@ -10,7 +10,7 @@ from PyQt6.QtCore import QThread, pyqtSignal, Qt
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QProgressBar, QPushButton, QHBoxLayout, QMessageBox, QApplication
 
-CURRENT_VERSION = "1.1.9"
+CURRENT_VERSION = "1.1.10"
 GITHUB_REPO = "JulietaSleiman/ISS"  # Releases oficiales de este sistema de ventas
 GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 
@@ -346,6 +346,17 @@ while ($attempts -lt 30) {{
 # el ejecutable onefile no necesita eliminar la carpeta _internal para actualizarse.
 if ($replaced) {{
     Remove-Item -LiteralPath $newExe -Force -ErrorAction SilentlyContinue
+    if (Test-Path -LiteralPath $backupExe) {{
+        try {{
+            $appDataDir = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'SistemaIvanLlorens'
+            $backupDir = Join-Path $appDataDir 'RespaldosActualizador'
+            [System.IO.Directory]::CreateDirectory($backupDir) | Out-Null
+            $savedBackup = Join-Path $backupDir ([System.IO.Path]::GetFileName($backupExe))
+            Move-Item -LiteralPath $backupExe -Destination $savedBackup -Force -ErrorAction Stop
+        }} catch {{
+            Log-Msg ("El respaldo quedo junto al ejecutable: " + $_.Exception.Message)
+        }}
+    }}
 }} else {{
     Log-Msg "No se pudo actualizar. Se conserva la version anterior y la descarga."
     if (-not (Test-Path -LiteralPath $currentExe) -and (Test-Path -LiteralPath $backupExe)) {{
